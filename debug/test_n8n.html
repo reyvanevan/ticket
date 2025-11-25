@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧪 Test n8n Webhook - Multi Ticket System</title>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    p {
+      color: #666;
+      line-height: 1.6;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .input-group {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    #result {
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 5px;
+      background: #f5f5f5;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      border-left: 4px solid #999;
+    }
+    .success { 
+      background: #d4edda; 
+      color: #155724;
+      border-left-color: #28a745;
+    }
+    .error { 
+      background: #f8d7da; 
+      color: #721c24;
+      border-left-color: #dc3545;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-left-color: #17a2b8;
+    }
+    .button-group {
+      margin: 20px 0;
+    }
+    .note {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test n8n Webhook - Multi Ticket System</h1>
+    <p>Test complete flow: Generate multiple tickets → n8n generate multiple QR codes → Send email with attachments.</p>
+    
+    <div class="note">
+      <strong>📋 System Flow:</strong><br>
+      <small>
+        1. Admin approve order<br>
+        2. Generate tickets sebanyak quantity (UMBFEST-xxx-001, 002...)<br>
+        3. Send array <code>kodes</code> ke n8n webhook<br>
+        4. n8n: Splitter → HTTP Request (QR per ticket) → Merger → Send Email<br>
+        5. Email dengan multiple QR attachments
+      </small>
+    </div>
+
+    <div class="input-group">
+      <label for="webhookUrl">n8n Webhook URL:</label>
+      <input type="text" id="webhookUrl" value="https://revy.app.n8n.cloud/webhook/new-order" placeholder="https://revy.app.n8n.cloud/webhook/new-order">
+    </div>
+
+    <div class="input-group">
+      <label for="nama">Nama Pembeli:</label>
+      <input type="text" id="nama" value="Reyvanevan Test" placeholder="Masukkan nama">
+    </div>
+
+    <div class="input-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" value="reyvan.evann@gmail.com" placeholder="Masukkan email">
+    </div>
+
+    <div class="input-group">
+      <label for="order_number">Order Number:</label>
+      <input type="text" id="order_number" value="UMB20251126071259" placeholder="UMB20251126071259">
+    </div>
+
+    <div class="input-group">
+      <label for="quantity">Quantity (Jumlah Tiket):</label>
+      <select id="quantity" onchange="updateTicketCodes()">
+        <option value="1">1 Tiket</option>
+        <option value="2" selected>2 Tiket</option>
+        <option value="3">3 Tiket</option>
+        <option value="4">4 Tiket</option>
+        <option value="5">5 Tiket</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="ticketCodes">Kode Tiket (Array):</label>
+      <input type="text" id="ticketCodes" value='["UMBFEST-20251126071259-001","UMBFEST-20251126071259-002"]' placeholder='["UMBFEST-...-001","UMBFEST-...-002"]'>
+      <small style="color: #666;">Format: JSON array of strings</small>
+    </div>
+
+    <div class="input-group">
+      <label for="total">Total Harga (Rp):</label>
+      <input type="number" id="total" value="42000" min="0">
+    </div>
+
+    <div class="button-group">
+      <button onclick="testN8NWebhook()">🚀 Kirim ke n8n</button>
+      <button onclick="clearForm()">🔄 Reset Form</button>
+    </div>
+    
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // Update ticket codes based on quantity
+    function updateTicketCodes() {
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const orderNumber = document.getElementById('order_number').value.replace('UMB', '');
+      const codes = [];
+      
+      for (let i = 1; i <= quantity; i++) {
+        codes.push(`UMBFEST-${orderNumber}-${String(i).padStart(3, '0')}`);
+      }
+      
+      document.getElementById('ticketCodes').value = JSON.stringify(codes);
+    }
+
+    async function testN8NWebhook() {
+      const resultDiv = document.getElementById('result');
+      const button = event.target;
+      button.disabled = true;
+
+      const webhookUrl = document.getElementById('webhookUrl').value.trim();
+      
+      // Get form values
+      let ticketCodesArray;
+      try {
+        ticketCodesArray = JSON.parse(document.getElementById('ticketCodes').value);
+      } catch (e) {
+        alert('Format kode tiket salah! Harus JSON array.');
+        button.disabled = false;
+        return;
+      }
+
+      const testData = {
+        nama: document.getElementById('nama').value,
+        email: document.getElementById('email').value,
+        kodes: ticketCodesArray,  // Array of ticket codes
+        order_number: document.getElementById('order_number').value,
+        quantity: parseInt(document.getElementById('quantity').value),
+        total: parseInt(document.getElementById('total').value)
+      };
+
+      resultDiv.className = 'info';
+      resultDiv.textContent = '⏳ Sending data to n8n...\n\n';
+
+      try {
+        const startTime = Date.now();
+        
+        resultDiv.textContent += '📤 WEBHOOK URL:\n' + webhookUrl + '\n\n';
+        resultDiv.textContent += '📦 PAYLOAD:\n' + JSON.stringify(testData, null, 2) + '\n\n';
+        resultDiv.textContent += `🎫 Ticket Codes (${testData.kodes.length}):\n`;
+        testData.kodes.forEach((code, index) => {
+          resultDiv.textContent += `  ${index + 1}. ${code}\n`;
+        });
+        resultDiv.textContent += '\n⏳ Waiting for n8n response...\n\n';
+        
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(testData)
+        });
+
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+
+        const responseText = await response.text();
+        let responseJSON = null;
+        
+        try {
+          responseJSON = JSON.parse(responseText);
+        } catch (e) {
+          // Response bukan JSON, oke
+        }
+        
+        if (response.ok) {
+          resultDiv.className = 'success';
+          resultDiv.textContent += '\n✅ SUKSES!\n\n';
+          resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n';
+          resultDiv.textContent += '📊 HTTP Status: ' + response.status + '\n\n';
+          resultDiv.textContent += '📥 RESPONSE:\n';
+          resultDiv.textContent += responseJSON ? 
+            JSON.stringify(responseJSON, null, 2) : 
+            responseText;
+          resultDiv.textContent += '\n\n✨ Data berhasil diterima oleh n8n!\n';
+          resultDiv.textContent += `📧 Email dengan ${testData.kodes.length} QR code attachments akan dikirim ke: ${testData.email}\n`;
+          resultDiv.textContent += '💡 Cek email untuk validasi apakah semua QR code masuk.';
+        } else {
+          resultDiv.className = 'error';
+          resultDiv.textContent += '\n❌ GAGAL!\n\n';
+          resultDiv.textContent += '📊 HTTP Status: ' + response.status + ' ' + response.statusText + '\n';
+          resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n\n';
+          resultDiv.textContent += '📥 RESPONSE:\n';
+          resultDiv.textContent += responseJSON ? 
+            JSON.stringify(responseJSON, null, 2) : 
+            responseText;
+        }
+
+        // Log to console
+        console.log('n8n Webhook Test Result:', {
+          status: response.status,
+          statusText: response.statusText,
+          duration: duration + 'ms',
+          ticketCount: testData.kodes.length,
+          response: responseJSON || responseText
+        });
+
+      } catch (error) {
+        resultDiv.className = 'error';
+        resultDiv.textContent += '\n❌ ERROR!\n\n';
+        resultDiv.textContent += '🚨 ' + error.toString() + '\n\n';
+        resultDiv.textContent += '💡 Kemungkinan masalah:\n';
+        resultDiv.textContent += '- URL webhook salah atau offline\n';
+        resultDiv.textContent += '- Network timeout (30 detik)\n';
+        resultDiv.textContent += '- CORS issue (check browser console)\n';
+        resultDiv.textContent += '- n8n workflow tidak aktif\n\n';
+        resultDiv.textContent += 'Cek developer console (F12) untuk detail error.';
+
+        console.error('n8n Webhook Test Error:', error);
+      }
+
+      button.disabled = false;
+    }
+
+    function clearForm() {
+      document.getElementById('nama').value = 'Reyvanevan Test';
+      document.getElementById('email').value = 'reyvan.evann@gmail.com';
+      document.getElementById('order_number').value = 'UMB20251126071259';
+      document.getElementById('quantity').value = '2';
+      document.getElementById('total').value = '42000';
+      updateTicketCodes();
+      document.getElementById('result').textContent = '';
+    }
+
+    // Auto-log on load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('=== n8n Webhook Test Tool - Multi Ticket System ===');
+      console.log('Webhook URL:', document.getElementById('webhookUrl').value);
+      console.log('System: Generate multiple QR codes based on quantity');
+      console.log('Ready to send test data!');
+      
+      // Initialize ticket codes
+      updateTicketCodes();
+    });
+  </script>
+</body>
+</html>
