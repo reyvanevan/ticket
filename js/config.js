@@ -35,9 +35,9 @@ const CONFIG = {
     currency: 'IDR'
   },
 
-  // Payment Methods
+  // Payment Methods (ONLY QRIS)
   payment: {
-    // QRIS Information (for E-Ticket display)
+    // QRIS Information
     qris: {
       enabled: true,
       name: 'QRIS UMbandung Festival',
@@ -45,38 +45,10 @@ const CONFIG = {
       image: './assets/qris-umbandung.jpg',
       description: 'SATU QRIS UNTUK SEMUA - Scan dan bayar via aplikasi penyelenggara di www.aspi-qris.id',
       printedBy: '93600914',
-      version: 'v0.0.2025.11.24'
+      version: 'v0.0.2025.11.24',
+      verificationRequired: true,
+      verificationTime: '1x24 jam'
     },
-    methods: {
-      transfer: {
-        enabled: true,
-        name: 'Transfer Bank',
-        description: 'BCA, Mandiri, BNI, BRI',
-        icon: 'credit-card',
-        verificationRequired: true,
-        verificationTime: '1x24 jam'
-      }
-    },
-    banks: [
-      {
-        name: 'Bank BCA',
-        accountNumber: '1234567890',
-        accountName: 'Panitia UMbandung Festival',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg'
-      },
-      {
-        name: 'Bank Mandiri',
-        accountNumber: '0987654321',
-        accountName: 'Panitia UMbandung Festival',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg'
-      },
-      {
-        name: 'Bank BNI',
-        accountNumber: '1122334455',
-        accountName: 'Panitia UMbandung Festival',
-        logo: 'https://upload.wikimedia.org/wikipedia/id/5/55/BNI_logo.svg'
-      }
-    ],
     countdown: 86400 // 24 hours in seconds
   },
 

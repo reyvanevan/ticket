@@ -93,16 +93,27 @@
             </button>
           </div>
 
-          <!-- QRIS Payment Method -->
+          <!-- QRIS Payment Method (ONLY) -->
           <div class="payment-method-content" id="qrisMethod">
             <h2>Pembayaran dengan QRIS</h2>
-            <p class="payment-instruction">Scan QR Code di bawah ini dengan aplikasi e-wallet Anda</p>
+            <p class="payment-instruction">Scan QR Code di bawah ini dengan aplikasi e-wallet atau mobile banking Anda</p>
 
             <div class="qr-code-container">
               <div class="qr-code-box">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://umbandung-fest-2025.com/payment/UMB2025-001234" alt="QR Code Payment">
+                <img src="./assets/qris-umbandung.jpg" alt="QRIS UMbandung Festival" style="max-width: 350px; width: 100%;">
               </div>
-              <p class="qr-hint">Scan menggunakan: GoPay, OVO, Dana, ShopeePay, LinkAja</p>
+              <div style="text-align: center; margin-top: 1rem;">
+                <p class="qr-hint" style="font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">
+                  NMID: ID1025421181005
+                </p>
+                <p class="qr-hint" style="font-size: 0.9rem;">SATU QRIS UNTUK SEMUA</p>
+                <p class="qr-hint" style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+                  Scan menggunakan aplikasi e-wallet atau mobile banking
+                </p>
+                <p class="qr-hint" style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 0.5rem;">
+                  Cek aplikasi penyelenggara di: www.aspi-qris.id
+                </p>
+              </div>
             </div>
 
             <div class="payment-steps">
@@ -111,36 +122,51 @@
                 <li>
                   <div class="step-icon">1</div>
                   <div class="step-text">
-                    <h4>Buka Aplikasi E-Wallet</h4>
-                    <p>Pilih GoPay, OVO, Dana, ShopeePay, atau LinkAja</p>
+                    <h4>Buka Aplikasi Pembayaran</h4>
+                    <p>E-wallet (GoPay, OVO, Dana, ShopeePay) atau Mobile Banking</p>
                   </div>
                 </li>
                 <li>
                   <div class="step-icon">2</div>
                   <div class="step-text">
-                    <h4>Scan QR Code</h4>
-                    <p>Gunakan fitur scan QR di aplikasi Anda</p>
+                    <h4>Scan QR Code QRIS</h4>
+                    <p>Arahkan kamera ke QR Code di atas</p>
                   </div>
                 </li>
                 <li>
                   <div class="step-icon">3</div>
                   <div class="step-text">
-                    <h4>Konfirmasi Pembayaran</h4>
-                    <p>Pastikan nominal sesuai dan konfirmasi</p>
+                    <h4>Konfirmasi Total Pembayaran</h4>
+                    <p>Pastikan nominal <strong id="qrisAmount">Rp 21.000</strong> sudah sesuai</p>
                   </div>
                 </li>
                 <li>
                   <div class="step-icon">4</div>
                   <div class="step-text">
-                    <h4>Pembayaran Selesai</h4>
-                    <p>E-ticket akan dikirim ke email Anda</p>
+                    <h4>Upload Bukti Pembayaran</h4>
+                    <p>Screenshot bukti pembayaran dan upload di form konfirmasi</p>
                   </div>
                 </li>
               </ol>
             </div>
+
+            <div class="upload-proof-section">
+              <h3>Upload Bukti Pembayaran</h3>
+              <p style="color: rgba(255,255,255,0.7); margin-bottom: 1rem;">Setelah melakukan pembayaran via QRIS, upload screenshot bukti transaksi Anda</p>
+              <div class="upload-box" id="uploadBox">
+                <i data-feather="upload" class="icon"></i>
+                <p>Klik atau drag & drop bukti pembayaran di sini</p>
+                <span>Format: JPG, PNG, PDF (Max 2MB)</span>
+                <input type="file" id="proofFile" accept="image/*,.pdf" hidden>
+              </div>
+              <button class="submit-proof-btn" id="submitProofBtn" disabled>
+                <i data-feather="check"></i>
+                <span>Konfirmasi Pembayaran</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Bank Transfer Payment Method -->
+          <!-- Bank Transfer Method REMOVED (Only QRIS now) -->
           <div class="payment-method-content" id="transferMethod" style="display: none;">
             <h2>Pembayaran via Transfer Bank</h2>
             <p class="payment-instruction">Transfer ke salah satu rekening di bawah ini</p>

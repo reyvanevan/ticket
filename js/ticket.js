@@ -140,7 +140,7 @@ if (window.location.pathname.includes('checkout.html')) {
         email: document.getElementById('email').value,
         phone: document.getElementById('phone').value,
         idNumber: document.getElementById('idNumber').value,
-        paymentMethod: document.querySelector('input[name="payment"]:checked').value,
+        paymentMethod: 'qris', // Force QRIS as only payment method
         agree: document.getElementById('agree').checked
       };
 
@@ -215,18 +215,22 @@ if (window.location.pathname.includes('payment.html')) {
     document.getElementById('summarySubtotal').textContent = formatRupiah(completeOrderData.subtotal);
     document.getElementById('summaryAdminFee').textContent = formatRupiah(completeOrderData.adminFee);
     document.getElementById('summaryTotal').textContent = formatRupiah(completeOrderData.total);
-    document.getElementById('transferAmount').textContent = formatRupiah(completeOrderData.total);
+    
+    // Update QRIS amount display
+    const qrisAmountEl = document.getElementById('qrisAmount');
+    if (qrisAmountEl) {
+      qrisAmountEl.textContent = formatRupiah(completeOrderData.total);
+    }
 
     // Update order number
     document.getElementById('orderNumber').textContent = completeOrderData.orderNumber;
 
-    // Show appropriate payment method
-    // NOTE: Hanya Transfer Bank yang aktif, QRIS disabled
-    const paymentMethod = completeOrderData.paymentMethod || 'transfer';
-    
-    // Hide QRIS, show Transfer only
-    document.getElementById('qrisMethod').style.display = 'none';
-    document.getElementById('transferMethod').style.display = 'block';
+    // Show QRIS payment method only (Transfer removed)
+    document.getElementById('qrisMethod').style.display = 'block';
+    const transferMethod = document.getElementById('transferMethod');
+    if (transferMethod) {
+      transferMethod.style.display = 'none';
+    }
 
     // Payment countdown timer (24 hours)
     startPaymentCountdown();
