@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧪 Test Generate Tickets API</title>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    .input-group {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #result {
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 5px;
+      background: #f5f5f5;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      border-left: 4px solid #999;
+    }
+    .success { 
+      background: #d4edda; 
+      color: #155724;
+      border-left-color: #28a745;
+    }
+    .error { 
+      background: #f8d7da; 
+      color: #721c24;
+      border-left-color: #dc3545;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-left-color: #17a2b8;
+    }
+    .tickets-list {
+      margin-top: 15px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 4px;
+    }
+    .ticket-item {
+      padding: 8px;
+      background: white;
+      margin: 5px 0;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎫 Test Generate Tickets API</h1>
+    <p>Test endpoint: <code>/generate_tickets.php</code></p>
+    
+    <div class="input-group">
+      <label for="apiUrl">API URL:</label>
+      <input type="text" id="apiUrl" value="https://umbfest.gt.tc/generate_tickets.php" placeholder="https://umbfest.gt.tc/generate_tickets.php">
+    </div>
+
+    <div class="input-group">
+      <label for="orderNumber">Order Number:</label>
+      <input type="text" id="orderNumber" value="UMB20251126071259" placeholder="UMB20251126071259">
+    </div>
+
+    <div class="button-group">
+      <button onclick="testGenerateTickets()">🚀 Generate Tickets</button>
+      <button onclick="clearResult()">🔄 Clear Result</button>
+    </div>
+    
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function testGenerateTickets() {
+      const resultDiv = document.getElementById('result');
+      const button = event.target;
+      button.disabled = true;
+
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      const orderNumber = document.getElementById('orderNumber').value.trim();
+
+      if (!orderNumber) {
+        alert('Order Number harus diisi!');
+        button.disabled = false;
+        return;
+      }
+
+      resultDiv.className = 'info';
+      resultDiv.textContent = '⏳ Generating tickets...\n\n';
+
+      try {
+        const startTime = Date.now();
+        
+        resultDiv.textContent += '📤 REQUEST:\n';
+        resultDiv.textContent += 'URL: ' + apiUrl + '\n';
+        resultDiv.textContent += 'Method: POST\n';
+        resultDiv.textContent += 'Body: ' + JSON.stringify({ orderNumber }, null, 2) + '\n\n';
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ orderNumber })
+        });
+
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+
+        const responseText = await response.text();
+        let responseJSON = null;
+        
+        try {
+          responseJSON = JSON.parse(responseText);
+        } catch (e) {
+          // Response bukan JSON
+        }
+        
+        if (response.ok && responseJSON) {
+          if (responseJSON.status === 'success') {
+            resultDiv.className = 'success';
+            resultDiv.textContent += '\n✅ SUCCESS!\n\n';
+            resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n';
+            resultDiv.textContent += '📊 HTTP Status: ' + response.status + '\n\n';
+            resultDiv.textContent += '📥 RESPONSE:\n';
+            resultDiv.textContent += JSON.stringify(responseJSON, null, 2) + '\n\n';
+            
+            // Show tickets
+            if (responseJSON.data && responseJSON.data.tickets) {
+              resultDiv.textContent += '🎫 GENERATED TICKETS:\n';
+              responseJSON.data.tickets.forEach((ticket, index) => {
+                resultDiv.textContent += `  ${index + 1}. ${ticket}\n`;
+              });
+              resultDiv.textContent += `\nTotal: ${responseJSON.data.quantity} tiket\n`;
+            }
+          } else {
+            resultDiv.className = 'error';
+            resultDiv.textContent += '\n⚠️ API ERROR\n\n';
+            resultDiv.textContent += '📊 HTTP Status: ' + response.status + '\n';
+            resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n\n';
+            resultDiv.textContent += '📥 RESPONSE:\n';
+            resultDiv.textContent += JSON.stringify(responseJSON, null, 2);
+          }
+        } else {
+          resultDiv.className = 'error';
+          resultDiv.textContent += '\n❌ FAILED!\n\n';
+          resultDiv.textContent += '📊 HTTP Status: ' + response.status + ' ' + response.statusText + '\n';
+          resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n\n';
+          resultDiv.textContent += '📥 RESPONSE:\n';
+          resultDiv.textContent += responseText;
+        }
+
+        console.log('Generate Tickets Test Result:', {
+          status: response.status,
+          duration: duration + 'ms',
+          response: responseJSON || responseText
+        });
+
+      } catch (error) {
+        resultDiv.className = 'error';
+        resultDiv.textContent += '\n❌ ERROR!\n\n';
+        resultDiv.textContent += '🚨 ' + error.toString() + '\n\n';
+        resultDiv.textContent += '💡 Kemungkinan masalah:\n';
+        resultDiv.textContent += '- API URL salah atau offline\n';
+        resultDiv.textContent += '- CORS issue (check browser console)\n';
+        resultDiv.textContent += '- Network timeout\n';
+        resultDiv.textContent += '- Order number tidak ditemukan\n\n';
+        resultDiv.textContent += 'Cek developer console (F12) untuk detail error.';
+
+        console.error('Generate Tickets Test Error:', error);
+      }
+
+      button.disabled = false;
+    }
+
+    function clearResult() {
+      document.getElementById('result').textContent = '';
+      document.getElementById('result').className = '';
+    }
+  </script>
+</body>
+</html>

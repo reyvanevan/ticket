@@ -3,15 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test n8n Webhook + QR Generation</title>
-  
-  <!-- QR Code Library -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <title>🧪 Test n8n Webhook - Multi Ticket System</title>
   
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
+      max-width: 800px;
       margin: 50px auto;
       padding: 20px;
       background: #f9f9f9;
@@ -57,7 +54,7 @@
       font-weight: bold;
       color: #333;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       border: 1px solid #ddd;
@@ -95,13 +92,36 @@
     .button-group {
       margin: 20px 0;
     }
+    .note {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🧪 Test n8n Webhook + QR Generation</h1>
-    <p>Test complete flow: Generate QR → Send to n8n → Check email attachment.</p>
+    <h1>🧪 Test n8n Webhook - Multi Ticket System</h1>
+    <p>Test complete flow: Generate multiple tickets → n8n generate multiple QR codes → Send email with attachments.</p>
     
+    <div class="note">
+      <strong>📋 System Flow:</strong><br>
+      <small>
+        1. Admin approve order<br>
+        2. Generate tickets sebanyak quantity (UMBFEST-xxx-001, 002...)<br>
+        3. Send array <code>kodes</code> ke n8n webhook<br>
+        4. n8n: Splitter → HTTP Request (QR per ticket) → Merger → Send Email<br>
+        5. Email dengan multiple QR attachments
+      </small>
+    </div>
+
+    <div class="input-group">
+      <label for="webhookUrl">n8n Webhook URL:</label>
+      <input type="text" id="webhookUrl" value="https://revy.app.n8n.cloud/webhook/new-order" placeholder="https://revy.app.n8n.cloud/webhook/new-order">
+    </div>
+
     <div class="input-group">
       <label for="nama">Nama Pembeli:</label>
       <input type="text" id="nama" value="Reyvanevan Test" placeholder="Masukkan nama">
@@ -113,27 +133,34 @@
     </div>
 
     <div class="input-group">
-      <label for="kode_tiket">Kode Tiket:</label>
-      <input type="text" id="kode_tiket" value="TIX-TEST-001" placeholder="Contoh: TIX-TEST-001">
+      <label for="order_number">Order Number:</label>
+      <input type="text" id="order_number" value="UMB20251126071259" placeholder="UMB20251126071259">
     </div>
 
     <div class="input-group">
-      <label for="order_number">Nomor Order:</label>
-      <input type="text" id="order_number" value="ORD-TEST-20251125" placeholder="Contoh: ORD-TEST-20251125">
+      <label for="quantity">Quantity (Jumlah Tiket):</label>
+      <select id="quantity" onchange="updateTicketCodes()">
+        <option value="1">1 Tiket</option>
+        <option value="2" selected>2 Tiket</option>
+        <option value="3">3 Tiket</option>
+        <option value="4">4 Tiket</option>
+        <option value="5">5 Tiket</option>
+      </select>
     </div>
 
     <div class="input-group">
-      <label for="quantity">Jumlah Tiket:</label>
-      <input type="number" id="quantity" value="2" min="1">
+      <label for="ticketCodes">Kode Tiket (Array):</label>
+      <input type="text" id="ticketCodes" value='["UMBFEST-20251126071259-001","UMBFEST-20251126071259-002"]' placeholder='["UMBFEST-...-001","UMBFEST-...-002"]'>
+      <small style="color: #666;">Format: JSON array of strings</small>
     </div>
 
     <div class="input-group">
       <label for="total">Total Harga (Rp):</label>
-      <input type="number" id="total" value="150000" min="0">
+      <input type="number" id="total" value="42000" min="0">
     </div>
 
     <div class="button-group">
-      <button onclick="testN8N()">🚀 Kirim Data ke n8n</button>
+      <button onclick="testN8NWebhook()">🚀 Kirim ke n8n</button>
       <button onclick="clearForm()">🔄 Reset Form</button>
     </div>
     
@@ -141,53 +168,60 @@
   </div>
 
   <script>
-    const N8N_WEBHOOK_URL = 'https://revy.app.n8n.cloud/webhook/new-order';
+    // Update ticket codes based on quantity
+    function updateTicketCodes() {
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const orderNumber = document.getElementById('order_number').value.replace('UMB', '');
+      const codes = [];
+      
+      for (let i = 1; i <= quantity; i++) {
+        codes.push(`UMBFEST-${orderNumber}-${String(i).padStart(3, '0')}`);
+      }
+      
+      document.getElementById('ticketCodes').value = JSON.stringify(codes);
+    }
 
-    async function testN8N() {
+    async function testN8NWebhook() {
       const resultDiv = document.getElementById('result');
       const button = event.target;
       button.disabled = true;
 
+      const webhookUrl = document.getElementById('webhookUrl').value.trim();
+      
       // Get form values
+      let ticketCodesArray;
+      try {
+        ticketCodesArray = JSON.parse(document.getElementById('ticketCodes').value);
+      } catch (e) {
+        alert('Format kode tiket salah! Harus JSON array.');
+        button.disabled = false;
+        return;
+      }
+
       const testData = {
         nama: document.getElementById('nama').value,
         email: document.getElementById('email').value,
-        kode_tiket: document.getElementById('kode_tiket').value,
+        kodes: ticketCodesArray,  // Array of ticket codes
         order_number: document.getElementById('order_number').value,
         quantity: parseInt(document.getElementById('quantity').value),
         total: parseInt(document.getElementById('total').value)
       };
 
       resultDiv.className = 'info';
-      resultDiv.textContent = '⏳ Step 1: Generating QR Code...\n\n';
+      resultDiv.textContent = '⏳ Sending data to n8n...\n\n';
 
       try {
         const startTime = Date.now();
         
-        // STEP 1: Generate QR Code (like admin.js does)
-        let qrBase64 = null;
-        try {
-          qrBase64 = await generateQRCode(testData.kode_tiket);
-          resultDiv.textContent += '✅ QR Code generated successfully\n';
-          resultDiv.textContent += `QR Data Length: ${qrBase64.length} chars\n\n`;
-        } catch (qrError) {
-          resultDiv.textContent += '❌ QR Generation failed: ' + qrError.message + '\n\n';
-          // Continue without QR
-        }
-
-        // Add QR to payload if generated
-        if (qrBase64) {
-          testData.ticket_image_base64 = qrBase64;
-        }
-
-        resultDiv.textContent += '⏳ Step 2: Sending to n8n...\n\n';
-        resultDiv.textContent += '📤 WEBHOOK URL:\n' + N8N_WEBHOOK_URL + '\n\n';
-        resultDiv.textContent += '📦 DATA DIKIRIM:\n' + JSON.stringify({
-          ...testData,
-          ticket_image_base64: qrBase64 ? `[BASE64 DATA - ${qrBase64.length} chars]` : 'NOT GENERATED'
-        }, null, 2) + '\n\n';
+        resultDiv.textContent += '📤 WEBHOOK URL:\n' + webhookUrl + '\n\n';
+        resultDiv.textContent += '📦 PAYLOAD:\n' + JSON.stringify(testData, null, 2) + '\n\n';
+        resultDiv.textContent += `🎫 Ticket Codes (${testData.kodes.length}):\n`;
+        testData.kodes.forEach((code, index) => {
+          resultDiv.textContent += `  ${index + 1}. ${code}\n`;
+        });
+        resultDiv.textContent += '\n⏳ Waiting for n8n response...\n\n';
         
-        const response = await fetch(N8N_WEBHOOK_URL, {
+        const response = await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -218,10 +252,8 @@
             JSON.stringify(responseJSON, null, 2) : 
             responseText;
           resultDiv.textContent += '\n\n✨ Data berhasil diterima oleh n8n!\n';
-          resultDiv.textContent += qrBase64 ? 
-            '📎 QR Code attachment included!\n' : 
-            '⚠️ Email sent without QR attachment.\n';
-          resultDiv.textContent += '💡 Cek email untuk validasi apakah email masuk.';
+          resultDiv.textContent += `📧 Email dengan ${testData.kodes.length} QR code attachments akan dikirim ke: ${testData.email}\n`;
+          resultDiv.textContent += '💡 Cek email untuk validasi apakah semua QR code masuk.';
         } else {
           resultDiv.className = 'error';
           resultDiv.textContent += '\n❌ GAGAL!\n\n';
@@ -238,7 +270,7 @@
           status: response.status,
           statusText: response.statusText,
           duration: duration + 'ms',
-          hasQR: !!qrBase64,
+          ticketCount: testData.kodes.length,
           response: responseJSON || responseText
         });
 
@@ -250,7 +282,7 @@
         resultDiv.textContent += '- URL webhook salah atau offline\n';
         resultDiv.textContent += '- Network timeout (30 detik)\n';
         resultDiv.textContent += '- CORS issue (check browser console)\n';
-        resultDiv.textContent += '- QR generation failed\n\n';
+        resultDiv.textContent += '- n8n workflow tidak aktif\n\n';
         resultDiv.textContent += 'Cek developer console (F12) untuk detail error.';
 
         console.error('n8n Webhook Test Error:', error);
@@ -259,64 +291,25 @@
       button.disabled = false;
     }
 
-    // QR Code Generation Function (copy from utils.js)
-    async function generateQRCode(ticketCode) {
-      // Try using QRCode library if loaded
-      if (typeof QRCode !== 'undefined') {
-        return new Promise((resolve, reject) => {
-          QRCode.toDataURL(ticketCode, {
-            width: 512,
-            margin: 2,
-            errorCorrectionLevel: 'H',
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
-            }
-          }, (err, url) => {
-            if (err) {
-              console.warn('QRCode library failed, trying API fallback...');
-              resolve(generateQRViaAPI(ticketCode));
-            } else {
-              resolve(url);
-            }
-          });
-        });
-      } else {
-        console.warn('QRCode library not loaded, using API fallback...');
-        return generateQRViaAPI(ticketCode);
-      }
-    }
-
-    // Fallback: Generate QR via Google Charts API
-    async function generateQRViaAPI(ticketCode) {
-      const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=512x512&chl=${encodeURIComponent(ticketCode)}&choe=UTF-8`;
-      
-      const response = await fetch(qrUrl);
-      const blob = await response.blob();
-      
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
     function clearForm() {
       document.getElementById('nama').value = 'Reyvanevan Test';
-      document.getElementById('email').value = 'reyvanevan@gmail.com';
-      document.getElementById('kode_tiket').value = 'TIX-TEST-001';
-      document.getElementById('order_number').value = 'ORD-TEST-20251125';
+      document.getElementById('email').value = 'reyvan.evann@gmail.com';
+      document.getElementById('order_number').value = 'UMB20251126071259';
       document.getElementById('quantity').value = '2';
-      document.getElementById('total').value = '150000';
+      document.getElementById('total').value = '42000';
+      updateTicketCodes();
       document.getElementById('result').textContent = '';
     }
 
     // Auto-log on load
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('=== n8n Webhook Test Tool ===');
-      console.log('Webhook URL:', N8N_WEBHOOK_URL);
+      console.log('=== n8n Webhook Test Tool - Multi Ticket System ===');
+      console.log('Webhook URL:', document.getElementById('webhookUrl').value);
+      console.log('System: Generate multiple QR codes based on quantity');
       console.log('Ready to send test data!');
+      
+      // Initialize ticket codes
+      updateTicketCodes();
     });
   </script>
 </body>
