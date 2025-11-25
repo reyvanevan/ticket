@@ -246,6 +246,22 @@ function clearAllTicketingData() {
 }
 
 /**
+ * Save order to persistent storage (for admin access)
+ * Creates a separate storage entry with order_ prefix
+ * @param {Object} orderData - Complete order data
+ * @returns {boolean} Success status
+ */
+function saveOrderToPersistentStorage(orderData) {
+  if (!orderData || !orderData.orderNumber) {
+    console.error('Invalid order data');
+    return false;
+  }
+
+  const storageKey = `${CONFIG.storage.orderPrefix}${orderData.orderNumber}`;
+  return setStorageData(storageKey, orderData);
+}
+
+/**
  * Format countdown time
  * @param {number} seconds - Total seconds
  * @returns {string} Formatted time (HH:MM:SS)

@@ -316,8 +316,11 @@ if (window.location.pathname.includes('payment.html')) {
             completeOrderData.proofUploadDate = uploadResult.uploadedAt;
             completeOrderData.proofFileUrl = uploadResult.fileUrl;
             
-            // Save updated order data
+            // Save updated order data to session storage
             setStorageData(CONFIG.storage.completeOrderData, completeOrderData);
+
+            // IMPORTANT: Save to persistent storage for admin access
+            saveOrderToPersistentStorage(completeOrderData);
 
             // Show success message
             showAlert(CONFIG.messages.success.proofUploaded, 'success');

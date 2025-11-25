@@ -37,13 +37,17 @@ const CONFIG = {
 
   // Payment Methods
   payment: {
+    // QRIS Information (for E-Ticket display)
+    qris: {
+      enabled: true,
+      name: 'QRIS UMbandung Festival',
+      nmid: 'ID1025421181005',
+      image: './assets/qris-umbandung.jpg',
+      description: 'SATU QRIS UNTUK SEMUA - Scan dan bayar via aplikasi penyelenggara di www.aspi-qris.id',
+      printedBy: '93600914',
+      version: 'v0.0.2025.11.24'
+    },
     methods: {
-      qris: {
-        enabled: false, // Disabled - hanya transfer bank
-        name: 'QRIS',
-        description: 'Scan QR code dengan e-wallet',
-        icon: 'smartphone'
-      },
       transfer: {
         enabled: true,
         name: 'Transfer Bank',
@@ -117,7 +121,8 @@ const CONFIG = {
   storage: {
     orderData: 'umb_order_data',
     completeOrderData: 'umb_complete_order',
-    ticketData: 'umb_ticket_data'
+    ticketData: 'umb_ticket_data',
+    orderPrefix: 'order_' // For admin panel to find all orders
   },
 
   // Messages
@@ -143,7 +148,8 @@ const CONFIG = {
     info: {
       verificationPending: 'Bukti pembayaran Anda sedang diverifikasi oleh tim kami. Anda akan menerima konfirmasi via email dan WhatsApp dalam 1x24 jam.',
       uploadInstruction: 'Upload bukti transfer Anda dan tunggu verifikasi dari admin.',
-      paymentInstruction: 'Transfer sesuai nominal yang tertera dan upload bukti transfer.'
+      paymentInstruction: 'Transfer sesuai nominal yang tertera dan upload bukti transfer.',
+      ticketNotReady: 'Tiket belum bisa digunakan. Tunggu verifikasi admin terlebih dahulu.'
     }
   }
 };

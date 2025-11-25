@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - LENTERA Ticketing</title>
+
+  <!--Feather Icons-->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!--Font Awesome-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+
+  <!--Fonts-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,300;0,400;0,700;1,700&display=swap" rel="stylesheet">
+
+  <!--CSS-->
+  <link rel="stylesheet" href="./style.css">
+
+  <style>
+    /* Admin-specific styles */
+    .admin-section {
+      padding: 8rem 7% 2rem;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .admin-header h1 {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .admin-header p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1.1rem;
+    }
+
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(234, 80, 35, 0.2);
+    }
+
+    .stat-card .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--primary);
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-card .stat-label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .filter-section {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-label {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: transparent;
+      color: #fff;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .orders-table-container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #fff;
+    }
+
+    .orders-table thead {
+      background: rgba(234, 80, 35, 0.1);
+    }
+
+    .orders-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .orders-table td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .orders-table tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    .orders-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .status-badge {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid #ffc107;
+    }
+
+    .status-waiting {
+      background: rgba(33, 150, 243, 0.2);
+      color: #2196f3;
+      border: 1px solid #2196f3;
+    }
+
+    .status-verified {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+      border: 1px solid #4caf50;
+    }
+
+    .status-rejected {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+      border: 1px solid #f44336;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .btn-approve {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-approve:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-reject {
+      background: #f44336;
+      color: white;
+    }
+
+    .btn-reject:hover {
+      background: #da190b;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+    }
+
+    .btn-view {
+      background: #2196f3;
+      color: white;
+    }
+
+    .btn-view:hover {
+      background: #0b7dda;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    .proof-preview {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .proof-preview:hover {
+      transform: scale(1.1);
+      border-color: var(--primary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    /* Modal for proof preview */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+    }
+
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.1);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--primary);
+      transform: rotate(90deg);
+    }
+
+    @media (max-width: 768px) {
+      .admin-section {
+        padding: 6rem 5% 2rem;
+      }
+
+      .orders-table-container {
+        overflow-x: scroll;
+      }
+
+      .orders-table {
+        min-width: 800px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-logo">LENTERA</a>
+
+    <div class="navbar-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#event">Event</a>
+      <a href="index.html#kontak">Kontak</a>
+      <a href="admin.html" class="active">Admin</a>
+    </div>
+
+    <div class="navbar-extra">
+      <a href="#" id="hamburger-menu"><i data-feather="menu"></i></a>
+    </div>
+  </nav>
+
+  <!-- Admin Section -->
+  <section class="admin-section">
+    <div class="admin-header">
+      <h1>
+        <i data-feather="shield"></i>
+        Admin Panel - Verifikasi Pembayaran
+      </h1>
+      <p>Kelola dan verifikasi pesanan tiket UMBANDUNG FEST 2025</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <i data-feather="shopping-cart" class="icon"></i>
+        <span class="stat-value" id="totalOrders">0</span>
+        <span class="stat-label">Total Pesanan</span>
+      </div>
+      <div class="stat-card">
+        <i data-feather="clock" class="icon"></i>
+        <span class="stat-value" id="waitingOrders">0</span>
+        <span class="stat-label">Menunggu Verifikasi</span>
+      </div>
+      <div class="stat-card">
+        <i data-feather="check-circle" class="icon"></i>
+        <span class="stat-value" id="verifiedOrders">0</span>
+        <span class="stat-label">Terverifikasi</span>
+      </div>
+      <div class="stat-card">
+        <i data-feather="dollar-sign" class="icon"></i>
+        <span class="stat-value" id="totalRevenue">Rp 0</span>
+        <span class="stat-label">Total Pendapatan</span>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <span class="filter-label">Filter Status:</span>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-status="all">Semua</button>
+        <button class="filter-btn" data-status="PENDING_PAYMENT">Pending Payment</button>
+        <button class="filter-btn" data-status="WAITING_VERIFICATION">Waiting Verification</button>
+        <button class="filter-btn" data-status="VERIFIED">Verified</button>
+        <button class="filter-btn" data-status="REJECTED">Rejected</button>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="orders-table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>WhatsApp</th>
+            <th>Qty</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Bukti Transfer</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+          <!-- Orders will be loaded here via JavaScript -->
+        </tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <i data-feather="inbox"></i>
+        <h3>Tidak ada pesanan</h3>
+        <p>Belum ada pesanan dengan status yang dipilih</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal for Proof Preview -->
+  <div class="modal" id="proofModal">
+    <div class="modal-content">
+      <span class="modal-close" id="closeModal">&times;</span>
+      <img id="proofImage" src="" alt="Bukti Transfer">
+    </div>
+  </div>
+
+  <!--JavaScript -->
+  <script>
+    feather.replace()
+  </script>
+
+  <script src="./js/script.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="./js/utils.js"></script>
+  <script src="./js/admin.js"></script>
+
+</body>
+</html>
