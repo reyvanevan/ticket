@@ -367,37 +367,9 @@ if (window.location.pathname.includes('payment.html')) {
               // Continue even if database save fails
             }
 
-            // 2. Trigger n8n webhook untuk kirim email tiket
-            try {
-              // Generate ticket number untuk email
-              const ticketNumber = generateTicketNumber(completeOrderData.orderNumber, 0);
-              
-              const emailResponse = await fetch(CONFIG.api.phpEndpoints.sendEmail, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  nama: completeOrderData.buyer.fullName,
-                  email: completeOrderData.buyer.email,
-                  kode_tiket: ticketNumber,
-                  order_number: completeOrderData.orderNumber,
-                  quantity: completeOrderData.quantity,
-                  total: completeOrderData.total
-                })
-              });
-
-              const emailResult = await emailResponse.json();
-              
-              if (emailResult.status !== 'success') {
-                console.error('Email send failed:', emailResult.message);
-              } else {
-                console.log('Email sent successfully via n8n');
-              }
-            } catch (emailError) {
-              console.error('Email error:', emailError);
-              // Continue even if email fails
-            }
+            // 2. N8N EMAIL NOTIFICATION REMOVED FROM HERE
+            // Email will be sent by admin when they approve the order
+            // This avoids InfinityFree cURL blocking issues
 
             // =====================================================
             // END INTEGRASI
@@ -425,18 +397,8 @@ if (window.location.pathname.includes('payment.html')) {
       });
     }
 
-    // For QRIS, simulate automatic payment detection
-    if (paymentMethod === 'qris') {
-      // Auto redirect after 10 seconds (simulation)
-      setTimeout(() => {
-        if (confirm('Pembayaran terdeteksi! Lanjutkan ke halaman konfirmasi?')) {
-          completeOrderData.paymentConfirmed = true;
-          completeOrderData.paymentDate = new Date().toISOString();
-          localStorage.setItem('completeOrderData', JSON.stringify(completeOrderData));
-          showLoadingAndRedirect('success.html');
-        }
-      }, 10000);
-    }
+    // REMOVED: Auto-redirect simulation for QRIS (unnecessary)
+    // Payment confirmation is manual via upload proof
 
     // Initialize feather icons
     if (typeof feather !== 'undefined') {

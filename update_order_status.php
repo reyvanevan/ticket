@@ -86,39 +86,9 @@ try {
     // Commit transaction
     $conn->commit();
     
-    // If approved, trigger n8n email via send_ticket_email.php
-    $emailSent = false;
-    if ($data['status'] === 'verified') {
-        // Generate ticket number
-        $ticketNumber = $order['order_number'] . '-001'; // Simple generation
-        
-        // Prepare email data
-        $emailData = [
-            'nama' => $order['full_name'],
-            'email' => $order['email'],
-            'kode_tiket' => $ticketNumber,
-            'order_number' => $order['order_number'],
-            'quantity' => $order['quantity'],
-            'total' => $order['total']
-        ];
-        
-        // Call send_ticket_email.php internally
-        $emailUrl = 'send_ticket_email.php';
-        
-        // Use cURL to call the email endpoint
-        $ch = curl_init($_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/' . $emailUrl);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        
-        $emailResponse = curl_exec($ch);
-        $emailHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        $emailSent = ($emailHttpCode >= 200 && $emailHttpCode < 300);
-    }
+    // EMAIL SENDING REMOVED FROM SERVER-SIDE
+    // Email will be sent by admin.js from client-side JavaScript
+    // This avoids InfinityFree cURL blocking issues
     
     // Return success response
     echo json_encode([
@@ -128,8 +98,7 @@ try {
             'Order rejected successfully',
         'data' => [
             'orderNumber' => $data['orderNumber'],
-            'newStatus' => $data['status'],
-            'emailSent' => $emailSent
+            'newStatus' => $data['status']
         ]
     ]);
     

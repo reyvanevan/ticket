@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test n8n Webhook</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    p {
+      color: #666;
+      line-height: 1.6;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .input-group {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    #result {
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 5px;
+      background: #f5f5f5;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      border-left: 4px solid #999;
+    }
+    .success { 
+      background: #d4edda; 
+      color: #155724;
+      border-left-color: #28a745;
+    }
+    .error { 
+      background: #f8d7da; 
+      color: #721c24;
+      border-left-color: #dc3545;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-left-color: #17a2b8;
+    }
+    .button-group {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test n8n Webhook</h1>
+    <p>Kirim test data ke n8n webhook untuk validasi integrasi email.</p>
+    
+    <div class="input-group">
+      <label for="nama">Nama Pembeli:</label>
+      <input type="text" id="nama" value="Reyvanevan Test" placeholder="Masukkan nama">
+    </div>
+
+    <div class="input-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" value="reyvanevan@gmail.com" placeholder="Masukkan email">
+    </div>
+
+    <div class="input-group">
+      <label for="kode_tiket">Kode Tiket:</label>
+      <input type="text" id="kode_tiket" value="TIX-TEST-001" placeholder="Contoh: TIX-TEST-001">
+    </div>
+
+    <div class="input-group">
+      <label for="order_number">Nomor Order:</label>
+      <input type="text" id="order_number" value="ORD-TEST-20251125" placeholder="Contoh: ORD-TEST-20251125">
+    </div>
+
+    <div class="input-group">
+      <label for="quantity">Jumlah Tiket:</label>
+      <input type="number" id="quantity" value="2" min="1">
+    </div>
+
+    <div class="input-group">
+      <label for="total">Total Harga (Rp):</label>
+      <input type="number" id="total" value="150000" min="0">
+    </div>
+
+    <div class="button-group">
+      <button onclick="testN8N()">🚀 Kirim Data ke n8n</button>
+      <button onclick="clearForm()">🔄 Reset Form</button>
+    </div>
+    
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const N8N_WEBHOOK_URL = 'https://revy.app.n8n.cloud/webhook/new-order';
+
+    async function testN8N() {
+      const resultDiv = document.getElementById('result');
+      const button = event.target;
+      button.disabled = true;
+
+      // Get form values
+      const testData = {
+        nama: document.getElementById('nama').value,
+        email: document.getElementById('email').value,
+        kode_tiket: document.getElementById('kode_tiket').value,
+        order_number: document.getElementById('order_number').value,
+        quantity: parseInt(document.getElementById('quantity').value),
+        total: parseInt(document.getElementById('total').value)
+      };
+
+      resultDiv.className = 'info';
+      resultDiv.textContent = '⏳ Mengirim data ke n8n...\n\n';
+      resultDiv.textContent += '📤 WEBHOOK URL:\n' + N8N_WEBHOOK_URL + '\n\n';
+      resultDiv.textContent += '📦 DATA DIKIRIM:\n' + JSON.stringify(testData, null, 2) + '\n\n';
+      resultDiv.textContent += '⏱️ Tunggu response...\n\n';
+
+      try {
+        const startTime = Date.now();
+        
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(testData)
+        });
+
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+
+        const responseText = await response.text();
+        let responseJSON = null;
+        
+        try {
+          responseJSON = JSON.parse(responseText);
+        } catch (e) {
+          // Response bukan JSON, oke
+        }
+        
+        if (response.ok) {
+          resultDiv.className = 'success';
+          resultDiv.textContent = '✅ SUKSES!\n\n';
+          resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n';
+          resultDiv.textContent += '📊 HTTP Status: ' + response.status + '\n\n';
+          resultDiv.textContent += '📥 RESPONSE:\n';
+          resultDiv.textContent += responseJSON ? 
+            JSON.stringify(responseJSON, null, 2) : 
+            responseText;
+          resultDiv.textContent += '\n\n✨ Data berhasil diterima oleh n8n!\n';
+          resultDiv.textContent += '💡 Cek email untuk validasi apakah email masuk.';
+        } else {
+          resultDiv.className = 'error';
+          resultDiv.textContent = '❌ GAGAL!\n\n';
+          resultDiv.textContent += '📊 HTTP Status: ' + response.status + ' ' + response.statusText + '\n';
+          resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n\n';
+          resultDiv.textContent += '📥 RESPONSE:\n';
+          resultDiv.textContent += responseJSON ? 
+            JSON.stringify(responseJSON, null, 2) : 
+            responseText;
+        }
+
+        // Log to console
+        console.log('n8n Webhook Test Result:', {
+          status: response.status,
+          statusText: response.statusText,
+          duration: duration + 'ms',
+          response: responseJSON || responseText
+        });
+
+      } catch (error) {
+        resultDiv.className = 'error';
+        resultDiv.textContent = '❌ ERROR!\n\n';
+        resultDiv.textContent += '🚨 ' + error.toString() + '\n\n';
+        resultDiv.textContent += '💡 Kemungkinan masalah:\n';
+        resultDiv.textContent += '- URL webhook salah atau offline\n';
+        resultDiv.textContent += '- Network timeout (30 detik)\n';
+        resultDiv.textContent += '- CORS issue (check browser console)\n\n';
+        resultDiv.textContent += 'Cek developer console (F12) untuk detail error.';
+
+        console.error('n8n Webhook Test Error:', error);
+      }
+
+      button.disabled = false;
+    }
+
+    function clearForm() {
+      document.getElementById('nama').value = 'Reyvanevan Test';
+      document.getElementById('email').value = 'reyvanevan@gmail.com';
+      document.getElementById('kode_tiket').value = 'TIX-TEST-001';
+      document.getElementById('order_number').value = 'ORD-TEST-20251125';
+      document.getElementById('quantity').value = '2';
+      document.getElementById('total').value = '150000';
+      document.getElementById('result').textContent = '';
+    }
+
+    // Auto-log on load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('=== n8n Webhook Test Tool ===');
+      console.log('Webhook URL:', N8N_WEBHOOK_URL);
+      console.log('Ready to send test data!');
+    });
+  </script>
+</body>
+</html>

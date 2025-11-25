@@ -275,9 +275,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // APPROVE ORDER (UPDATE DATABASE)
+  // APPROVE ORDER (UPDATE DATABASE + SEND EMAIL FROM CLIENT)
   // ============================================
-  window.approveOrder = async function(orderNumber) {
+  window. approveOrder = async function(orderNumber) {
     if (!confirm(`✅ Approve pesanan ${orderNumber}?\n\nE-ticket akan dikirim otomatis ke email pembeli via n8n.`)) {
       return;
     }
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
 
     try {
-      // Call PHP API to update status
+      // Step 1: Update order status in database via PHP
       const response = await fetch(CONFIG.api.phpEndpoints.updateOrderStatus, {
         method: 'POST',
         headers: {
@@ -309,8 +309,67 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error(result.message || 'Failed to approve order');
       }
 
+      // Step 2: Get order data for email
+      const order = allOrders.find(o => o.orderNumber === orderNumber);
+      if (!order) {
+        throw new Error('Order data not found');
+      }
+
+      // Step 3: Generate ticket with QR code
+      let ticketImageBase64 = null;
+      const ticketNumber = `TIX-${orderNumber}-001`;
+      
+      try {
+        ticketImageBase64 = await createTicketWithQR({
+          kode_tiket: ticketNumber,
+          nama: order.buyer.fullName,
+          order_number: orderNumber,
+          quantity: order.quantity
+        });
+        console.log('✅ Ticket with QR generated');
+      } catch (qrError) {
+        console.error('⚠️ Failed to generate ticket QR:', qrError);
+        // Continue without QR - will send email without attachment
+      }
+
+      // Step 4: Send email via n8n webhook (CLIENT-SIDE - bypasses InfinityFree blocking!)
+      let emailSent = false;
+      try {
+        const emailPayload = {
+          nama: order.buyer.fullName,
+          email: order.buyer.email,
+          kode_tiket: ticketNumber,
+          order_number: orderNumber,
+          quantity: order.quantity,
+          total: order.total
+        };
+
+        // Add ticket image if generated
+        if (ticketImageBase64) {
+          emailPayload.ticket_image_base64 = ticketImageBase64;
+        }
+        
+        const emailResponse = await fetch(CONFIG.api.n8nWebhook, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(emailPayload)
+        });
+
+        if (emailResponse.ok) {
+          emailSent = true;
+          console.log('✅ Email sent via n8n from client-side');
+        } else {
+          console.error('⚠️ n8n webhook returned error:', await emailResponse.text());
+        }
+      } catch (emailError) {
+        console.error('⚠️ Failed to send email via n8n:', emailError);
+        // Don't throw - order is already approved in database
+      }
+
       // Show success message
-      const emailInfo = result.data.emailSent ? 
+      const emailInfo = emailSent ? 
         '\n📧 E-ticket telah dikirim ke email pembeli!' : 
         '\n⚠️ Order approved, tapi email gagal dikirim (cek n8n).';
       
