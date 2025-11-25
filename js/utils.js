@@ -310,20 +310,34 @@ function createTicketWhatsAppMessage(ticketData) {
 }
 
 /**
- * Simulate file upload (untuk development)
+ * Simulate file upload - Convert to base64 for persistence
  * @param {File} file - File to upload
- * @returns {Promise<Object>} Upload result
+ * @returns {Promise<Object>} Upload result with base64 data
  */
 async function simulateFileUpload(file) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        fileUrl: URL.createObjectURL(file),
-        fileName: file.name,
-        uploadedAt: new Date().toISOString()
-      });
-    }, 2000);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      // Convert file to base64 data URL
+      const base64String = reader.result;
+      
+      setTimeout(() => {
+        resolve({
+          success: true,
+          fileUrl: base64String,  // Base64 data URL (can be stored & displayed)
+          fileName: file.name,
+          uploadedAt: new Date().toISOString()
+        });
+      }, 1500);
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    // Read file as base64 data URL
+    reader.readAsDataURL(file);
   });
 }
 
