@@ -320,15 +320,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const ticketNumber = `TIX-${orderNumber}-001`;
       
       try {
+        // Check if QRCode library is loaded
+        if (typeof QRCode === 'undefined') {
+          throw new Error('QRCode library not loaded. Check CDN connection.');
+        }
+        
         ticketImageBase64 = await createTicketWithQR({
           kode_tiket: ticketNumber,
           nama: order.buyer.fullName,
           order_number: orderNumber,
           quantity: order.quantity
         });
-        console.log('✅ Ticket with QR generated');
+        
+        console.log('✅ QR Code generated successfully');
+        console.log('QR Data length:', ticketImageBase64 ? ticketImageBase64.length : 0);
+        
       } catch (qrError) {
         console.error('⚠️ Failed to generate ticket QR:', qrError);
+        alert(`⚠️ Warning: QR code generation failed.\n\nError: ${qrError.message}\n\nOrder approved but email will be sent WITHOUT QR attachment.`);
         // Continue without QR - will send email without attachment
       }
 
@@ -347,7 +356,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add ticket image if generated
         if (ticketImageBase64) {
           emailPayload.ticket_image_base64 = ticketImageBase64;
+          console.log('✅ QR attachment will be sent with email');
+        } else {
+          console.warn('⚠️ Email will be sent without QR attachment');
         }
+        
+        console.log('📤 Sending to n8n:', {
+          webhook: CONFIG.api.n8nWebhook,
+          hasQR: !!ticketImageBase64,
+          payloadSize: JSON.stringify(emailPayload).length
+        });
         
         const emailResponse = await fetch(CONFIG.api.n8nWebhook, {
           method: 'POST',
@@ -357,11 +375,16 @@ document.addEventListener('DOMContentLoaded', function() {
           body: JSON.stringify(emailPayload)
         });
 
+        const responseText = await emailResponse.text();
+        
         if (emailResponse.ok) {
           emailSent = true;
-          console.log('✅ Email sent via n8n from client-side');
+          console.log('✅ Email sent via n8n:', responseText);
         } else {
-          console.error('⚠️ n8n webhook returned error:', await emailResponse.text());
+          console.error('⚠️ n8n webhook error:', {
+            status: emailResponse.status,
+            response: responseText
+          });
         }
       } catch (emailError) {
         console.error('⚠️ Failed to send email via n8n:', emailError);
