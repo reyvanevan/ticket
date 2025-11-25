@@ -201,6 +201,14 @@ header .background div {
   font-weight: 300;
 }
 
+.hero-subtitle {
+  font-size: 1.2em;
+  color: var(--gray-color);
+  margin-top: 20px;
+  text-align: center;
+  letter-spacing: 0.2em;
+}
+
 .countdown {
   position: relative;
   display: grid;
@@ -380,6 +388,30 @@ header .background div {
 .event-date p{
   padding: 10px 10px 0;
   font-size: .8em;
+}
+
+.event-price,
+.event-artists {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+
+.event-price .icon,
+.event-artists .icon {
+  width: 18px;
+  height: 18px;
+  margin: 10px 0 0;
+  color: var(--secondary-color);
+}
+
+.event-price p,
+.event-artists p {
+  padding: 10px 10px 0;
+  font-size: .9em;
+  font-weight: 600;
+  color: var(--white-color);
 }
 
 .events-img {

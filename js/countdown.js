@@ -3,7 +3,8 @@ const hoursEl = document.getElementById('hours');
 const minutesEl = document.getElementById('minutes');
 const secondsEl = document.getElementById('seconds');
 
-const launch = "Feb 19, 2023";
+// UMbandung Festival 2025 - 29 November 2025, 10:00 WIB
+const launch = "Nov 29, 2025 10:00:00";
 
 function countdown() {
 

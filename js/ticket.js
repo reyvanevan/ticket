@@ -1,20 +1,18 @@
 // ============================================
-// TICKETING SYSTEM JAVASCRIPT
+// TICKETING SYSTEM JAVASCRIPT (MODULAR)
 // UMbandung Festival 2025
 // ============================================
 
-// Event data (bisa dikembangkan dengan database/API)
-const eventData = {
-  'umbandung-fest-2025': {
-    name: 'UMbandung Festival 2025',
-    date: '2025-11-29',
-    time: '10:00 WIB',
-    location: 'Lapangan Adymic UMbandung',
-    price: 20000,
-    adminFee: 1000,
-    image: './assets/umbandung-fest-2025.jpg'
-  }
-};
+// Import dependencies
+// NOTE: config.js and utils.js harus diload sebelum file ini
+
+// Check if dependencies loaded
+if (typeof CONFIG === 'undefined') {
+  console.error('CONFIG not loaded! Please include config.js before ticket.js');
+}
+if (typeof formatRupiah === 'undefined') {
+  console.error('Utils not loaded! Please include utils.js before ticket.js');
+}
 
 // ============================================
 // TICKET DETAIL PAGE
@@ -35,24 +33,20 @@ if (window.location.pathname.includes('ticket-detail.html')) {
     const totalPrice = document.getElementById('totalPrice');
     const checkoutBtn = document.getElementById('checkoutBtn');
 
-    const basePrice = 20000;
-    const adminFeeValue = 1000;
+    // Get pricing from config
+    const basePrice = CONFIG.pricing.regular.price;
+    const adminFeeValue = CONFIG.pricing.adminFee;
+    const maxQty = CONFIG.pricing.maxQuantity;
 
     // Update price display
     function updatePrice() {
       const qty = parseInt(quantityInput.value);
-      const subtotal = basePrice * qty;
-      const total = subtotal + adminFeeValue;
+      const orderTotal = calculateOrderTotal(qty, basePrice, adminFeeValue);
 
       ticketQty.textContent = qty;
-      ticketPrice.textContent = formatRupiah(subtotal);
-      adminFee.textContent = formatRupiah(adminFeeValue);
-      totalPrice.textContent = formatRupiah(total);
-    }
-
-    // Format number to Rupiah
-    function formatRupiah(number) {
-      return 'Rp ' + number.toLocaleString('id-ID');
+      ticketPrice.textContent = formatRupiah(orderTotal.subtotal);
+      adminFee.textContent = formatRupiah(orderTotal.adminFee);
+      totalPrice.textContent = formatRupiah(orderTotal.total);
     }
 
     // Decrease quantity
@@ -67,7 +61,7 @@ if (window.location.pathname.includes('ticket-detail.html')) {
     // Increase quantity
     plusBtn.addEventListener('click', function() {
       let qty = parseInt(quantityInput.value);
-      if (qty < 5) {
+      if (qty < maxQty) {
         quantityInput.value = qty + 1;
         updatePrice();
       }
@@ -80,18 +74,22 @@ if (window.location.pathname.includes('ticket-detail.html')) {
 
     // Checkout button handler
     checkoutBtn.addEventListener('click', function() {
+      const qty = parseInt(quantityInput.value);
+      const orderTotal = calculateOrderTotal(qty, basePrice, adminFeeValue);
+      
       const orderData = {
         eventId: eventId,
-        eventName: 'UMbandung Festival 2025',
-        quantity: parseInt(quantityInput.value),
+        eventInfo: CONFIG.event,
+        quantity: qty,
         ticketPrice: basePrice,
         adminFee: adminFeeValue,
-        subtotal: basePrice * parseInt(quantityInput.value),
-        total: (basePrice * parseInt(quantityInput.value)) + adminFeeValue
+        subtotal: orderTotal.subtotal,
+        total: orderTotal.total,
+        createdAt: new Date().toISOString()
       };
 
-      // Save to localStorage
-      localStorage.setItem('orderData', JSON.stringify(orderData));
+      // Save to localStorage using config key
+      setStorageData(CONFIG.storage.orderData, orderData);
 
       // Show loading and redirect
       showLoadingAndRedirect('checkout.html');
@@ -107,11 +105,11 @@ if (window.location.pathname.includes('ticket-detail.html')) {
 // ============================================
 if (window.location.pathname.includes('checkout.html')) {
   document.addEventListener('DOMContentLoaded', function() {
-    // Get order data from localStorage
-    const orderData = JSON.parse(localStorage.getItem('orderData'));
+    // Get order data from localStorage using config key
+    const orderData = getStorageData(CONFIG.storage.orderData);
 
     if (!orderData) {
-      alert('Data pesanan tidak ditemukan. Silakan pilih tiket terlebih dahulu.');
+      showAlert(CONFIG.messages.errors.orderNotFound, 'error');
       window.location.href = 'ticket-detail.html';
       return;
     }
@@ -148,26 +146,24 @@ if (window.location.pathname.includes('checkout.html')) {
 
       // Validation
       if (!formData.fullName || !formData.email || !formData.phone || !formData.idNumber) {
-        alert('Mohon lengkapi semua data yang diperlukan!');
+        showAlert(CONFIG.messages.errors.incompleteData, 'error');
         return;
       }
 
       if (!formData.agree) {
-        alert('Anda harus menyetujui syarat dan ketentuan!');
+        showAlert(CONFIG.messages.errors.termsNotAgreed, 'error');
         return;
       }
 
       // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        alert('Format email tidak valid!');
+      if (!validateEmail(formData.email)) {
+        showAlert(CONFIG.messages.errors.invalidEmail, 'error');
         return;
       }
 
-      // Validate phone number (8-13 digits)
-      const phoneRegex = /^[0-9]{9,13}$/;
-      if (!phoneRegex.test(formData.phone)) {
-        alert('Nomor WhatsApp harus 9-13 digit angka!');
+      // Validate phone number
+      if (!validatePhone(formData.phone)) {
+        showAlert(CONFIG.messages.errors.invalidPhone, 'error');
         return;
       }
 
@@ -176,11 +172,13 @@ if (window.location.pathname.includes('checkout.html')) {
         ...orderData,
         buyer: formData,
         orderNumber: generateOrderNumber(),
-        orderDate: new Date().toISOString()
+        orderDate: new Date().toISOString(),
+        status: CONFIG.orderStatus.PENDING_PAYMENT,
+        paymentMethod: formData.paymentMethod
       };
 
-      // Save to localStorage
-      localStorage.setItem('completeOrderData', JSON.stringify(completeOrderData));
+      // Save to localStorage using config key
+      setStorageData(CONFIG.storage.completeOrderData, completeOrderData);
 
       // Show loading and redirect to payment
       showLoadingAndRedirect('payment.html');
@@ -198,11 +196,11 @@ if (window.location.pathname.includes('checkout.html')) {
 // ============================================
 if (window.location.pathname.includes('payment.html')) {
   document.addEventListener('DOMContentLoaded', function() {
-    // Get complete order data
-    const completeOrderData = JSON.parse(localStorage.getItem('completeOrderData'));
+    // Get complete order data using config key
+    const completeOrderData = getStorageData(CONFIG.storage.completeOrderData);
 
     if (!completeOrderData) {
-      alert('Data pembayaran tidak ditemukan. Silakan ulangi proses pemesanan.');
+      showAlert(CONFIG.messages.errors.orderNotFound, 'error');
       window.location.href = 'ticket-detail.html';
       return;
     }
@@ -223,14 +221,12 @@ if (window.location.pathname.includes('payment.html')) {
     document.getElementById('orderNumber').textContent = completeOrderData.orderNumber;
 
     // Show appropriate payment method
-    const paymentMethod = completeOrderData.buyer.paymentMethod;
-    if (paymentMethod === 'qris') {
-      document.getElementById('qrisMethod').style.display = 'block';
-      document.getElementById('transferMethod').style.display = 'none';
-    } else {
-      document.getElementById('qrisMethod').style.display = 'none';
-      document.getElementById('transferMethod').style.display = 'block';
-    }
+    // NOTE: Hanya Transfer Bank yang aktif, QRIS disabled
+    const paymentMethod = completeOrderData.paymentMethod || 'transfer';
+    
+    // Hide QRIS, show Transfer only
+    document.getElementById('qrisMethod').style.display = 'none';
+    document.getElementById('transferMethod').style.display = 'block';
 
     // Payment countdown timer (24 hours)
     startPaymentCountdown();
@@ -238,17 +234,19 @@ if (window.location.pathname.includes('payment.html')) {
     // Copy order number button
     const copyOrderBtn = document.getElementById('copyOrderBtn');
     if (copyOrderBtn) {
-      copyOrderBtn.addEventListener('click', function() {
+      copyOrderBtn.addEventListener('click', async function() {
         const orderNumber = document.getElementById('orderNumber').textContent;
-        copyToClipboard(orderNumber);
+        const success = await copyToClipboard(orderNumber);
         
-        // Change button text temporarily
-        const btnSpan = this.querySelector('span');
-        const originalText = btnSpan.textContent;
-        btnSpan.textContent = 'Tersalin!';
-        setTimeout(() => {
-          btnSpan.textContent = originalText;
-        }, 2000);
+        if (success) {
+          // Change button text temporarily
+          const btnSpan = this.querySelector('span');
+          const originalText = btnSpan.textContent;
+          btnSpan.textContent = 'Tersalin!';
+          setTimeout(() => {
+            btnSpan.textContent = originalText;
+          }, 2000);
+        }
       });
     }
 
@@ -265,10 +263,17 @@ if (window.location.pathname.includes('payment.html')) {
       proofFile.addEventListener('change', function() {
         if (this.files && this.files[0]) {
           const file = this.files[0];
-          const fileSize = file.size / 1024 / 1024; // in MB
-
-          if (fileSize > 2) {
-            alert('Ukuran file maksimal 2MB!');
+          
+          // Validate file using utility function
+          const validation = validateFile(file, CONFIG.upload);
+          
+          if (!validation.valid) {
+            showAlert(
+              validation.error === 'File size exceeds 2MB' 
+                ? CONFIG.messages.errors.fileTooBig 
+                : CONFIG.messages.errors.invalidFileFormat,
+              'error'
+            );
             this.value = '';
             return;
           }
@@ -276,7 +281,7 @@ if (window.location.pathname.includes('payment.html')) {
           uploadBox.innerHTML = `
             <i data-feather="check-circle" class="icon"></i>
             <p>${file.name}</p>
-            <span>File siap diupload</span>
+            <span>File siap diupload (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
           `;
           feather.replace();
           submitProofBtn.disabled = false;
@@ -284,29 +289,55 @@ if (window.location.pathname.includes('payment.html')) {
       });
     }
 
-    // Submit proof button handler
+    // Submit proof button handler dengan sistem verifikasi admin
     if (submitProofBtn) {
-      submitProofBtn.addEventListener('click', function() {
+      submitProofBtn.addEventListener('click', async function() {
         if (!proofFile.files || !proofFile.files[0]) {
-          alert('Silakan upload bukti transfer terlebih dahulu!');
+          showAlert('Silakan upload bukti transfer terlebih dahulu!', 'error');
           return;
         }
 
-        // Simulate upload process
+        const file = proofFile.files[0];
+        
+        // Disable button and show loading
         this.disabled = true;
         this.innerHTML = '<i data-feather="loader" class="icon"></i><span>Mengupload...</span>';
         feather.replace();
 
-        // Simulate API call
-        setTimeout(() => {
-          // Save proof upload status
-          completeOrderData.proofUploaded = true;
-          completeOrderData.proofUploadDate = new Date().toISOString();
-          localStorage.setItem('completeOrderData', JSON.stringify(completeOrderData));
+        try {
+          // Simulate file upload (in production, this would be API call)
+          const uploadResult = await simulateFileUpload(file);
+          
+          if (uploadResult.success) {
+            // Update order status: PENDING_PAYMENT → WAITING_VERIFICATION
+            completeOrderData.status = CONFIG.orderStatus.WAITING_VERIFICATION;
+            completeOrderData.proofUploaded = true;
+            completeOrderData.proofFileName = uploadResult.fileName;
+            completeOrderData.proofUploadDate = uploadResult.uploadedAt;
+            completeOrderData.proofFileUrl = uploadResult.fileUrl;
+            
+            // Save updated order data
+            setStorageData(CONFIG.storage.completeOrderData, completeOrderData);
 
-          // Redirect to success page
-          showLoadingAndRedirect('success.html');
-        }, 2000);
+            // Show success message
+            showAlert(CONFIG.messages.success.proofUploaded, 'success');
+            
+            // Redirect to waiting verification page
+            setTimeout(() => {
+              showLoadingAndRedirect('success.html');
+            }, 1500);
+          } else {
+            throw new Error('Upload failed');
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          showAlert(CONFIG.messages.errors.uploadFailed, 'error');
+          
+          // Re-enable button
+          this.disabled = false;
+          this.innerHTML = '<i data-feather="check"></i><span>Konfirmasi Pembayaran</span>';
+          feather.replace();
+        }
       });
     }
 
@@ -331,26 +362,51 @@ if (window.location.pathname.includes('payment.html')) {
 }
 
 // ============================================
-// SUCCESS PAGE
+// SUCCESS PAGE (E-Ticket Display)
 // ============================================
 if (window.location.pathname.includes('success.html')) {
   document.addEventListener('DOMContentLoaded', function() {
-    // Get complete order data
-    const completeOrderData = JSON.parse(localStorage.getItem('completeOrderData'));
+    // Get complete order data using utility function
+    const completeOrderData = getStorageData(CONFIG.storage.completeOrderData);
 
     if (!completeOrderData) {
-      alert('Data tiket tidak ditemukan.');
-      window.location.href = 'index.html';
+      showAlert('Data tiket tidak ditemukan.', 'error');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 2000);
       return;
     }
 
-    // Generate ticket numbers
-    const ticketNumbers = [];
-    for (let i = 0; i < completeOrderData.quantity; i++) {
-      ticketNumbers.push(`${completeOrderData.orderNumber}-${String(i + 1).padStart(3, '0')}`);
+    // Check order status: should be VERIFIED or WAITING_VERIFICATION
+    const isVerified = completeOrderData.status === CONFIG.orderStatus.VERIFIED;
+    const isWaiting = completeOrderData.status === CONFIG.orderStatus.WAITING_VERIFICATION;
+
+    // If not verified yet, show waiting message
+    if (isWaiting) {
+      // Display verification pending status
+      const verificationAlert = document.createElement('div');
+      verificationAlert.className = 'alert alert-info';
+      verificationAlert.innerHTML = `
+        <i data-feather="clock"></i>
+        <div>
+          <strong>Menunggu Verifikasi Admin</strong>
+          <p>${CONFIG.messages.info.verificationPending}</p>
+        </div>
+      `;
+      
+      const ticketSection = document.querySelector('.ticket-section');
+      if (ticketSection) {
+        ticketSection.insertBefore(verificationAlert, ticketSection.firstChild);
+      }
     }
 
-    // Update ticket information
+    // Generate ticket numbers using utility function
+    const ticketNumbers = generateTicketNumber(
+      completeOrderData.orderNumber, 
+      completeOrderData.quantity
+    );
+
+    // Update ticket information from CONFIG
     document.getElementById('ticketNumber').textContent = ticketNumbers[0];
     document.getElementById('ticketHolderName').textContent = completeOrderData.buyer.fullName;
 
@@ -358,21 +414,37 @@ if (window.location.pathname.includes('success.html')) {
     const downloadTicketBtn = document.getElementById('downloadTicketBtn');
     if (downloadTicketBtn) {
       downloadTicketBtn.addEventListener('click', function() {
-        alert('Fitur download e-ticket akan segera tersedia!\n\nE-ticket telah dikirim ke email:\n' + completeOrderData.buyer.email);
+        if (!isVerified) {
+          showAlert(CONFIG.messages.info.ticketNotReady, 'info');
+          return;
+        }
+        
+        // TODO: Implement actual PDF download
+        showAlert(
+          `Fitur download e-ticket akan segera tersedia!\n\nE-ticket telah dikirim ke email:\n${completeOrderData.buyer.email}`,
+          'info'
+        );
       });
     }
 
-    // Share ticket button
+    // Share ticket button via WhatsApp
     const shareTicketBtn = document.getElementById('shareTicketBtn');
     if (shareTicketBtn) {
       shareTicketBtn.addEventListener('click', function() {
-        const message = `🎫 *E-Ticket UMbandung Festival 2025*\n\n` +
-                       `Nama: ${completeOrderData.buyer.fullName}\n` +
-                       `Nomor Tiket: ${ticketNumbers[0]}\n` +
-                       `Tanggal: 29 November 2025\n` +
-                       `Waktu: 10:00 WIB\n` +
-                       `Lokasi: Lapangan Adymic UMbandung\n\n` +
-                       `Jangan lupa datang tepat waktu! 🎉`;
+        if (!isVerified) {
+          showAlert(CONFIG.messages.info.ticketNotReady, 'info');
+          return;
+        }
+
+        // Create WhatsApp message using utility function
+        const message = createTicketWhatsAppMessage({
+          eventName: CONFIG.event.name,
+          holderName: completeOrderData.buyer.fullName,
+          ticketNumber: ticketNumbers[0],
+          date: CONFIG.event.date,
+          time: CONFIG.event.time,
+          location: CONFIG.event.location
+        });
         
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
@@ -383,6 +455,10 @@ if (window.location.pathname.includes('success.html')) {
     const printTicketBtn = document.getElementById('printTicketBtn');
     if (printTicketBtn) {
       printTicketBtn.addEventListener('click', function() {
+        if (!isVerified) {
+          showAlert(CONFIG.messages.info.ticketNotReady, 'info');
+          return;
+        }
         window.print();
       });
     }
@@ -399,72 +475,14 @@ if (window.location.pathname.includes('success.html')) {
 }
 
 // ============================================
-// UTILITY FUNCTIONS
+// LEGACY UTILITY FUNCTIONS (For backward compatibility)
+// TODO: Remove after all code migrated to utils.js
 // ============================================
 
-// Format number to Rupiah
-function formatRupiah(number) {
-  return 'Rp ' + number.toLocaleString('id-ID');
-}
-
-// Generate order number
-function generateOrderNumber() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const random = String(Math.floor(Math.random() * 999999)).padStart(6, '0');
-  
-  return `UMB${year}${month}${day}${random}`;
-}
-
-// Copy text to clipboard
-function copyToClipboard(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(() => {
-      console.log('Text copied to clipboard');
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
-    });
-  } else {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-      document.execCommand('copy');
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-    document.body.removeChild(textArea);
-  }
-}
-
-// Show loading overlay and redirect
-function showLoadingAndRedirect(url) {
-  // Create loading overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = `
-    <div class="loading-spinner">
-      <i data-feather="loader"></i>
-      <p>Memuat halaman...</p>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  // Replace feather icons in overlay
-  if (typeof feather !== 'undefined') {
-    feather.replace();
-  }
-
-  // Redirect after short delay
-  setTimeout(() => {
-    window.location.href = url;
-  }, 800);
+// Copy bank account number with alert
+function copyText(text) {
+  copyToClipboard(text);
+  showAlert('Nomor rekening berhasil disalin!', 'success');
 }
 
 // Payment countdown timer
@@ -481,24 +499,14 @@ function startPaymentCountdown() {
     if (timeRemaining <= 0) {
       clearInterval(countdownInterval);
       timerElement.textContent = '00:00:00';
-      alert('Waktu pembayaran telah habis. Silakan ulangi proses pemesanan.');
-      window.location.href = 'ticket-detail.html';
+      showAlert('Waktu pembayaran telah habis. Silakan ulangi proses pemesanan.', 'error');
+      setTimeout(() => {
+        window.location.href = 'ticket-detail.html';
+      }, 2000);
       return;
     }
 
-    // Calculate hours, minutes, seconds
-    const hours = Math.floor(timeRemaining / 3600);
-    const minutes = Math.floor((timeRemaining % 3600) / 60);
-    const seconds = timeRemaining % 60;
-
-    // Format and display
-    timerElement.textContent = 
-      `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    // Format and display using utility function
+    timerElement.textContent = formatCountdownTime(timeRemaining);
   }, 1000);
-}
-
-// Copy bank account number
-function copyText(text) {
-  copyToClipboard(text);
-  alert('Nomor rekening berhasil disalin!');
 }
