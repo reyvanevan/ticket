@@ -360,30 +360,63 @@ function isOrderExpired(orderDate, expirySeconds = 86400) {
 // ============================================
 
 /**
- * Generate QR code for ticket (Simple - no template overlay)
- * @param {string} ticketCode - Ticket code (e.g., TIX-UMB20251125-001)
+ * Generate QR code for ticket (FALLBACK - use API if library fails)
+ * @param {string} ticketCode - Ticket code
  * @returns {Promise<string>} QR code data URL (base64)
  */
 async function generateTicketQR(ticketCode) {
-  return new Promise((resolve, reject) => {
-    if (typeof QRCode === 'undefined') {
-      reject(new Error('QRCode library not loaded'));
-      return;
-    }
-    
-    QRCode.toDataURL(ticketCode, {
-      width: 512,           // Larger size for better quality
-      margin: 2,            // White border
-      errorCorrectionLevel: 'H',  // High error correction
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
-    }, (err, url) => {
-      if (err) reject(err);
-      else resolve(url);
+  // Try using QRCode library first
+  if (typeof QRCode !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      QRCode.toDataURL(ticketCode, {
+        width: 512,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }, (err, url) => {
+        if (err) {
+          console.warn('QRCode library failed, trying API fallback...');
+          // Fallback to API
+          resolve(generateTicketQRViaAPI(ticketCode));
+        } else {
+          resolve(url);
+        }
+      });
     });
-  });
+  } else {
+    // Library not loaded, use API directly
+    console.warn('QRCode library not loaded, using API fallback...');
+    return generateTicketQRViaAPI(ticketCode);
+  }
+}
+
+/**
+ * Generate QR via external API (FALLBACK)
+ * @param {string} ticketCode - Ticket code
+ * @returns {Promise<string>} QR code data URL
+ */
+async function generateTicketQRViaAPI(ticketCode) {
+  try {
+    // Use Google Charts API (free, no auth needed)
+    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=512x512&chl=${encodeURIComponent(ticketCode)}&choe=UTF-8`;
+    
+    // Fetch as blob and convert to base64
+    const response = await fetch(qrUrl);
+    const blob = await response.blob();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('API fallback also failed:', error);
+    throw new Error('QR generation failed (both library and API)');
+  }
 }
 
 /**
