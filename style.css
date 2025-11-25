@@ -422,6 +422,225 @@ header .background div {
   animation: bgSwitch 15s infinite;
 }
 
+/* NEW EVENT CONTAINER LAYOUT */
+.event-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 50px auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  padding: 2rem;
+  align-items: start;
+}
+
+.event-details {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.event-badge {
+  margin-bottom: 2rem;
+}
+
+.date-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--secondary-color), #ff6b3d);
+  border-radius: 50%;
+  box-shadow: 0 8px 25px rgba(234, 80, 35, 0.4);
+}
+
+.date-month {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 2px;
+}
+
+.date-day {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: white;
+  line-height: 1;
+}
+
+.event-main-title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--secondary-color);
+  margin-bottom: 2rem;
+  letter-spacing: 2px;
+  text-align: left;
+}
+
+.event-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.info-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(5px);
+}
+
+.info-item.special {
+  background: rgba(234, 80, 35, 0.1);
+  border-left: 3px solid var(--secondary-color);
+}
+
+.info-item .icon {
+  width: 24px;
+  height: 24px;
+  color: var(--secondary-color);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: left;
+}
+
+.info-text .label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-text .value {
+  font-size: 1rem;
+  color: white;
+  font-weight: 600;
+}
+
+/* GUEST STARS GALLERY */
+.guest-stars-gallery {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.gallery-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--secondary-color);
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: 3px;
+}
+
+.stars-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.star-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  aspect-ratio: 1;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.star-card:hover {
+  transform: scale(1.05);
+}
+
+.star-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.star-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.star-card:hover .star-image img {
+  transform: scale(1.1);
+}
+
+.star-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  padding: 1.5rem 1rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.star-card:hover .star-overlay {
+  transform: translateY(0);
+}
+
+.star-overlay span {
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 968px) {
+  .event-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .stars-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 568px) {
+  .event-details {
+    padding: 2rem 1.5rem;
+  }
+  
+  .event-main-title {
+    font-size: 1.5rem;
+  }
+  
+  .stars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 #artists {
   width: 100%;
   height: auto;
