@@ -364,30 +364,37 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📤 Sending to n8n:', {
           webhook: CONFIG.api.n8nWebhook,
           hasQR: !!ticketImageBase64,
-          payloadSize: JSON.stringify(emailPayload).length
+          payloadSize: JSON.stringify(emailPayload).length,
+          payload: emailPayload  // Log full payload for debugging
         });
         
         const emailResponse = await fetch(CONFIG.api.n8nWebhook, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'  // Add Accept header like test_n8n.html
           },
           body: JSON.stringify(emailPayload)
         });
 
+        console.log('📥 n8n Response Status:', emailResponse.status, emailResponse.statusText);
+        
         const responseText = await emailResponse.text();
+        console.log('📥 n8n Response Body:', responseText);
         
         if (emailResponse.ok) {
           emailSent = true;
-          console.log('✅ Email sent via n8n:', responseText);
+          console.log('✅ Email sent via n8n successfully');
         } else {
           console.error('⚠️ n8n webhook error:', {
             status: emailResponse.status,
+            statusText: emailResponse.statusText,
             response: responseText
           });
         }
       } catch (emailError) {
         console.error('⚠️ Failed to send email via n8n:', emailError);
+        console.error('⚠️ Error stack:', emailError.stack);
         // Don't throw - order is already approved in database
       }
 
