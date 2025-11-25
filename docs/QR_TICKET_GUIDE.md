@@ -103,9 +103,22 @@ const emailResponse = await fetch(CONFIG.api.n8nWebhook, {
 ### 4. Update n8n Workflow
 **Send Email Node → Attachments:**
 - Add attachment
-- Type: Binary data from expression
-- Expression: `{{ $json.ticket_image_base64.replace('data:image/png;base64,', '') }}`
-- Filename: `ticket-{{ $json.order_number }}.png`
+- Mode: Expression
+- Expression (paste ini):
+```javascript
+{{ 
+  [{
+    data: $json.ticket_image_base64.split(',')[1],
+    filename: `ticket-${$json.order_number}.png`,
+    type: 'image/png'
+  }]
+}}
+```
+
+**Penjelasan:**
+- `.split(',')[1]` → Remove "data:image/png;base64," prefix
+- `filename` → Dynamic filename based on order number
+- `type` → MIME type untuk PNG image
 
 ## Testing
 1. Admin approve order
