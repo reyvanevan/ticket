@@ -326,6 +326,83 @@ if (window.location.pathname.includes('payment.html')) {
             // IMPORTANT: Save to persistent storage for admin access
             saveOrderToPersistentStorage(completeOrderData);
 
+            // =====================================================
+            // INTEGRASI DATABASE & N8N EMAIL
+            // =====================================================
+            
+            // 1. Save order ke database MySQL via PHP
+            try {
+              const saveResponse = await fetch(CONFIG.api.phpEndpoints.saveOrder, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  orderNumber: completeOrderData.orderNumber,
+                  fullName: completeOrderData.buyer.fullName,
+                  email: completeOrderData.buyer.email,
+                  phone: completeOrderData.buyer.phone,
+                  idNumber: completeOrderData.buyer.idNumber,
+                  quantity: completeOrderData.quantity,
+                  ticketPrice: completeOrderData.ticketPrice,
+                  adminFee: completeOrderData.adminFee,
+                  total: completeOrderData.total,
+                  paymentMethod: completeOrderData.paymentMethod,
+                  status: completeOrderData.status,
+                  proofFileName: uploadResult.fileName,
+                  proofFileUrl: uploadResult.fileUrl,
+                  orderDate: completeOrderData.orderDate
+                })
+              });
+
+              const saveResult = await saveResponse.json();
+              
+              if (saveResult.status !== 'success') {
+                console.error('Database save failed:', saveResult.message);
+              } else {
+                console.log('Order saved to database:', saveResult.data);
+              }
+            } catch (dbError) {
+              console.error('Database error:', dbError);
+              // Continue even if database save fails
+            }
+
+            // 2. Trigger n8n webhook untuk kirim email tiket
+            try {
+              // Generate ticket number untuk email
+              const ticketNumber = generateTicketNumber(completeOrderData.orderNumber, 0);
+              
+              const emailResponse = await fetch(CONFIG.api.phpEndpoints.sendEmail, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  nama: completeOrderData.buyer.fullName,
+                  email: completeOrderData.buyer.email,
+                  kode_tiket: ticketNumber,
+                  order_number: completeOrderData.orderNumber,
+                  quantity: completeOrderData.quantity,
+                  total: completeOrderData.total
+                })
+              });
+
+              const emailResult = await emailResponse.json();
+              
+              if (emailResult.status !== 'success') {
+                console.error('Email send failed:', emailResult.message);
+              } else {
+                console.log('Email sent successfully via n8n');
+              }
+            } catch (emailError) {
+              console.error('Email error:', emailError);
+              // Continue even if email fails
+            }
+
+            // =====================================================
+            // END INTEGRASI
+            // =====================================================
+
             // Show success message
             showAlert(CONFIG.messages.success.proofUploaded, 'success');
             

@@ -54,10 +54,10 @@ const CONFIG = {
 
   // Contact Information
   contact: {
-    email: 'info@umbandungfest.com',
-    emailSupport: 'lentera@umbandung.ac.id',
-    whatsapp: '6281234567890',
-    whatsappDisplay: '0812-3456-7890',
+    email: 'umbandungfest@gmail.com',
+    emailSupport: 'umbandungfest@gmail.com',
+    whatsapp: '6285726132201',
+    whatsappDisplay: '0857-2613-2201',
     instagram: '@umbandungfest',
     address: 'Lapangan Adymic, Universitas Muhammadiyah Bandung'
   },
@@ -80,7 +80,16 @@ const CONFIG = {
 
   // API Endpoints (untuk future development)
   api: {
-    baseUrl: 'https://api.umbandungfest.com',
+    baseUrl: 'https://api.umbandungfest.com', // Ganti dengan domain lo
+    // PHP Endpoints (cPanel hosting)
+    phpEndpoints: {
+      saveOrder: '/save_order.php',        // Absolute path dari root
+      sendEmail: '/send_ticket_email.php',
+      getOrders: '/get_orders.php',
+      updateOrderStatus: '/update_order_status.php'
+    },
+    // N8N Webhook URL - GANTI DENGAN URL PRODUCTION LO!
+    n8nWebhook: 'https://revy.app.n8n.cloud/webhook/new-order', // TODO: Update ini!
     endpoints: {
       createOrder: '/api/orders/create',
       uploadProof: '/api/orders/upload-proof',

@@ -1,13 +1,13 @@
 // ============================================
 // ADMIN PANEL - Order Management & Verification
+// INTEGRATED WITH DATABASE & N8N
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Get all orders from localStorage
-  const allOrders = getAllOrders();
-  
-  // Current filter status
+  // State management
+  let allOrders = [];
   let currentFilter = 'all';
+  let isLoading = false;
 
   // Initialize admin panel
   initializeAdmin();
@@ -15,10 +15,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // ============================================
   // INITIALIZATION
   // ============================================
-  function initializeAdmin() {
-    updateStatistics();
-    renderOrders(allOrders);
-    setupEventListeners();
+  async function initializeAdmin() {
+    showLoadingState();
+    
+    try {
+      await loadOrdersFromDatabase();
+      updateStatistics();
+      renderOrders(allOrders);
+      setupEventListeners();
+    } catch (error) {
+      console.error('Failed to initialize admin panel:', error);
+      showErrorState('Gagal memuat data. Silakan refresh halaman.');
+    } finally {
+      hideLoadingState();
+    }
     
     // Feather icons
     if (typeof feather !== 'undefined') {
@@ -27,23 +37,56 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // GET ALL ORDERS
+  // LOAD ORDERS FROM DATABASE (via PHP API)
   // ============================================
-  function getAllOrders() {
+  async function loadOrdersFromDatabase() {
+    try {
+      const response = await fetch(CONFIG.api.phpEndpoints.getOrders);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.status !== 'success') {
+        throw new Error(result.message || 'Failed to fetch orders');
+      }
+      
+      allOrders = result.data.orders;
+      
+      console.log('✅ Loaded orders from database:', allOrders.length);
+      
+      return allOrders;
+      
+    } catch (error) {
+      console.error('Error loading orders:', error);
+      
+      // Fallback to localStorage if database fails
+      console.warn('⚠️ Falling back to localStorage...');
+      allOrders = getAllOrdersFromLocalStorage();
+      
+      throw error;
+    }
+  }
+
+  // ============================================
+  // FALLBACK: GET ORDERS FROM LOCALSTORAGE
+  // ============================================
+  function getAllOrdersFromLocalStorage() {
     const orders = [];
     
-    // Loop through localStorage to find all order data
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       
-      // Check if key matches order pattern
       if (key.startsWith('order_')) {
         try {
           const orderData = JSON.parse(localStorage.getItem(key));
           if (orderData && orderData.orderNumber) {
             orders.push({
               ...orderData,
-              storageKey: key
+              storageKey: key,
+              total: orderData.total || orderData.totalAmount || 0
             });
           }
         } catch (error) {
@@ -52,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Sort by creation date (newest first)
     return orders.sort((a, b) => {
       const dateA = new Date(a.orderDate || 0);
       const dateB = new Date(b.orderDate || 0);
@@ -78,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         stats.waiting++;
       } else if (order.status === CONFIG.orderStatus.VERIFIED) {
         stats.verified++;
-        stats.revenue += order.totalAmount || 0;
+        stats.revenue += order.total || 0;
       }
     });
 
@@ -127,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${order.buyer.email}</td>
           <td>${order.buyer.phone}</td>
           <td>${order.quantity}x</td>
-          <td>${formatRupiah(order.totalAmount)}</td>
+          <td>${formatRupiah(order.total)}</td>
           <td>
             <span class="status-badge status-${statusClass}">${statusText}</span>
           </td>
@@ -185,6 +227,20 @@ document.addEventListener('DOMContentLoaded', function() {
     return textMap[status] || status;
   }
 
+  function showLoadingState() {
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">⏳ Memuat data...</td></tr>';
+  }
+
+  function hideLoadingState() {
+    // Will be replaced by actual data
+  }
+
+  function showErrorState(message) {
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #f44336;">❌ ${message}</td></tr>`;
+  }
+
   // ============================================
   // EVENT LISTENERS
   // ============================================
@@ -219,86 +275,127 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // GLOBAL FUNCTIONS (for onclick handlers)
+  // APPROVE ORDER (UPDATE DATABASE)
   // ============================================
-  window.approveOrder = function(orderNumber) {
-    if (!confirm(`Approve pesanan ${orderNumber}?\n\nE-ticket akan dikirim ke email pembeli.`)) {
+  window.approveOrder = async function(orderNumber) {
+    if (!confirm(`✅ Approve pesanan ${orderNumber}?\n\nE-ticket akan dikirim otomatis ke email pembeli via n8n.`)) {
       return;
     }
 
-    // Find order
-    const order = allOrders.find(o => o.orderNumber === orderNumber);
-    if (!order) {
-      showAlert('Pesanan tidak ditemukan!', 'error');
-      return;
+    // Show loading
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-feather="loader"></i> Processing...';
+    feather.replace();
+
+    try {
+      // Call PHP API to update status
+      const response = await fetch(CONFIG.api.phpEndpoints.updateOrderStatus, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          orderNumber: orderNumber,
+          status: 'verified',
+          adminName: 'Admin' // TODO: Get from login session
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.status !== 'success') {
+        throw new Error(result.message || 'Failed to approve order');
+      }
+
+      // Show success message
+      const emailInfo = result.data.emailSent ? 
+        '\n📧 E-ticket telah dikirim ke email pembeli!' : 
+        '\n⚠️ Order approved, tapi email gagal dikirim (cek n8n).';
+      
+      alert(`✅ Pesanan ${orderNumber} berhasil diverifikasi!${emailInfo}`);
+
+      // Reload data from database
+      await loadOrdersFromDatabase();
+      updateStatistics();
+      renderOrders(allOrders);
+
+    } catch (error) {
+      console.error('Error approving order:', error);
+      alert(`❌ Gagal approve order:\n${error.message}`);
+      
+      // Restore button
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      feather.replace();
     }
-
-    // Update status to VERIFIED
-    order.status = CONFIG.orderStatus.VERIFIED;
-    order.verifiedDate = new Date().toISOString();
-    order.verifiedBy = 'Admin'; // In production, use actual admin name
-
-    // Save to localStorage
-    localStorage.setItem(order.storageKey, JSON.stringify(order));
-
-    // Also update completeOrderData if it's the current session
-    const currentOrderData = getStorageData(CONFIG.storage.completeOrderData);
-    if (currentOrderData && currentOrderData.orderNumber === orderNumber) {
-      currentOrderData.status = CONFIG.orderStatus.VERIFIED;
-      currentOrderData.verifiedDate = order.verifiedDate;
-      setStorageData(CONFIG.storage.completeOrderData, currentOrderData);
-    }
-
-    // Show success message
-    showAlert(`✅ Pesanan ${orderNumber} berhasil diverifikasi!\n\nE-ticket telah dikirim ke ${order.buyer.email}`, 'success');
-
-    // Refresh display
-    location.reload();
   };
 
-  window.rejectOrder = function(orderNumber) {
-    const reason = prompt(`Reject pesanan ${orderNumber}?\n\nMasukkan alasan penolakan:`);
+  // ============================================
+  // REJECT ORDER (UPDATE DATABASE)
+  // ============================================
+  window.rejectOrder = async function(orderNumber) {
+    const reason = prompt(`❌ Reject pesanan ${orderNumber}?\n\nMasukkan alasan penolakan:`);
     
     if (!reason) {
       return; // User cancelled
     }
 
-    // Find order
-    const order = allOrders.find(o => o.orderNumber === orderNumber);
-    if (!order) {
-      showAlert('Pesanan tidak ditemukan!', 'error');
-      return;
+    // Show loading
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-feather="loader"></i> Processing...';
+    feather.replace();
+
+    try {
+      // Call PHP API to update status
+      const response = await fetch(CONFIG.api.phpEndpoints.updateOrderStatus, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          orderNumber: orderNumber,
+          status: 'rejected',
+          adminName: 'Admin',
+          rejectionReason: reason
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.status !== 'success') {
+        throw new Error(result.message || 'Failed to reject order');
+      }
+
+      // Show message
+      alert(`❌ Pesanan ${orderNumber} ditolak.\n\nAlasan: ${reason}`);
+
+      // Reload data
+      await loadOrdersFromDatabase();
+      updateStatistics();
+      renderOrders(allOrders);
+
+    } catch (error) {
+      console.error('Error rejecting order:', error);
+      alert(`❌ Gagal reject order:\n${error.message}`);
+      
+      // Restore button
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      feather.replace();
     }
-
-    // Update status to REJECTED
-    order.status = CONFIG.orderStatus.REJECTED;
-    order.rejectedDate = new Date().toISOString();
-    order.rejectedBy = 'Admin';
-    order.rejectionReason = reason;
-
-    // Save to localStorage
-    localStorage.setItem(order.storageKey, JSON.stringify(order));
-
-    // Also update completeOrderData if it's the current session
-    const currentOrderData = getStorageData(CONFIG.storage.completeOrderData);
-    if (currentOrderData && currentOrderData.orderNumber === orderNumber) {
-      currentOrderData.status = CONFIG.orderStatus.REJECTED;
-      currentOrderData.rejectedDate = order.rejectedDate;
-      currentOrderData.rejectionReason = reason;
-      setStorageData(CONFIG.storage.completeOrderData, currentOrderData);
-    }
-
-    // Show message
-    showAlert(`❌ Pesanan ${orderNumber} ditolak.\n\nAlasan: ${reason}`, 'error');
-
-    // Refresh display
-    location.reload();
   };
 
+  // ============================================
+  // VIEW ORDER DETAILS
+  // ============================================
   window.viewOrderDetails = function(orderNumber) {
     const order = allOrders.find(o => o.orderNumber === orderNumber);
     if (!order) {
-      showAlert('Pesanan tidak ditemukan!', 'error');
+      alert('❌ Pesanan tidak ditemukan!');
       return;
     }
 
@@ -308,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 Order ID: ${order.orderNumber}
 Status: ${getStatusText(order.status)}
-Tanggal Order: ${new Date(order.orderDate).toLocaleString('id-ID')}
+Tanggal Order: ${new Date(order.orderDate || order.createdAt).toLocaleString('id-ID')}
 
 👤 INFORMASI PEMBELI
 Nama: ${order.buyer.fullName}
@@ -320,11 +417,11 @@ ID Card: ${order.buyer.idNumber}
 Quantity: ${order.quantity}x
 Harga Satuan: ${formatRupiah(order.ticketPrice)}
 Biaya Admin: ${formatRupiah(order.adminFee)}
-Total: ${formatRupiah(order.totalAmount)}
+Total: ${formatRupiah(order.total)}
 
 💳 PEMBAYARAN
 Metode: ${order.paymentMethod}
-${order.proofUploaded ? `Upload Bukti: ${new Date(order.proofUploadDate).toLocaleString('id-ID')}` : 'Belum upload bukti'}
+${order.proofUploaded ? `Upload Bukti: ✅ ${order.proofFileName || 'Yes'}` : '❌ Belum upload bukti'}
 ${order.verifiedDate ? `\n✅ Verified: ${new Date(order.verifiedDate).toLocaleString('id-ID')}` : ''}
 ${order.rejectedDate ? `\n❌ Rejected: ${new Date(order.rejectedDate).toLocaleString('id-ID')}\nAlasan: ${order.rejectionReason}` : ''}
     `;
@@ -332,6 +429,9 @@ ${order.rejectedDate ? `\n❌ Rejected: ${new Date(order.rejectedDate).toLocaleS
     alert(details);
   };
 
+  // ============================================
+  // SHOW PROOF MODAL
+  // ============================================
   window.showProofModal = function(imageUrl) {
     const modal = document.getElementById('proofModal');
     const proofImage = document.getElementById('proofImage');
