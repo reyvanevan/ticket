@@ -1,0 +1,44 @@
+# Database credentials - NEVER commit!
+db.php
+.htpasswd
+.htaccess
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Node modules (if using Node later)
+node_modules/
+package-lock.json
+
+# Backup files
+*.backup
+*.bak
+*_backup/
+js_backup/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build outputs (if applicable)
+dist/
+build/
