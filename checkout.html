@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!--feather iicons cdn-->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!--font awesome cdn-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!--google fonts link-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&family=Roboto:wght@100;300;400;500;700;900&display=swap"
+    rel="stylesheet">
+
+  <title>Checkout - UMbandung Festival 2025</title>
+</head>
+<body>
+  
+  <nav class="navbar sticky">
+    <a href="index.html" class="logo">EDMEX</a>
+    <ul class="nav-links close">
+      <li><a href="index.html#hero-section">Home</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#artists">Artists</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="#">Shop</a></li>
+    </ul>
+    <ul class="nav-icons">
+      <li><a href="#"><i data-feather="shopping-cart" class="icon"></i></a></li>
+      <li>
+        <input type="checkbox" id="menu">
+        <label for="menu" onclick="changeMenu()">
+          <div class="line line1"></div>
+          <div class="line line2"></div>
+        </label>
+      </li>
+    </ul>
+  </nav>
+
+  <section class="checkout-section">
+    <div class="checkout-container">
+      <div class="checkout-header">
+        <a href="ticket-detail.html" class="back-link">
+          <i data-feather="arrow-left" class="icon"></i>
+          <span>Kembali</span>
+        </a>
+        <h1>Checkout</h1>
+        <div class="progress-steps">
+          <div class="step active">
+            <span class="step-number">1</span>
+            <span class="step-label">Data Diri</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <span class="step-label">Pembayaran</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <span class="step-label">Selesai</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="checkout-content">
+        <!-- Order Summary Sidebar -->
+        <div class="order-summary-sidebar">
+          <h2>Ringkasan Pesanan</h2>
+          
+          <div class="event-summary-card">
+            <img src="./assets/umbandung-fest-2025.jpg" alt="UMbandung Festival 2025">
+            <div class="event-summary-info">
+              <h3>UMbandung Festival 2025</h3>
+              <div class="event-summary-detail">
+                <i data-feather="calendar" class="icon"></i>
+                <span>29 November 2025</span>
+              </div>
+              <div class="event-summary-detail">
+                <i data-feather="clock" class="icon"></i>
+                <span>10:00 WIB</span>
+              </div>
+              <div class="event-summary-detail">
+                <i data-feather="map-pin" class="icon"></i>
+                <span>Lapangan Adymic UMbandung</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="price-breakdown">
+            <h3>Detail Harga</h3>
+            <div class="price-item">
+              <span>Regular Ticket x <span id="orderQty">1</span></span>
+              <span id="orderSubtotal">Rp 20.000</span>
+            </div>
+            <div class="price-item">
+              <span>Biaya Admin</span>
+              <span id="orderAdminFee">Rp 1.000</span>
+            </div>
+            <div class="price-divider"></div>
+            <div class="price-item total">
+              <span>Total Pembayaran</span>
+              <span id="orderTotal">Rp 21.000</span>
+            </div>
+          </div>
+
+          <div class="security-badge">
+            <i data-feather="shield" class="icon"></i>
+            <div>
+              <h4>Transaksi Aman</h4>
+              <p>Data Anda dilindungi dengan enkripsi</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Buyer Information Form -->
+        <div class="buyer-form-container">
+          <h2>Data Pembeli</h2>
+          <p class="form-subtitle">Pastikan data yang Anda masukkan sudah benar</p>
+          
+          <form id="checkoutForm">
+            <div class="form-group">
+              <label for="fullName">
+                Nama Lengkap <span class="required">*</span>
+              </label>
+              <input type="text" id="fullName" name="fullName" placeholder="Masukkan nama lengkap" required>
+              <span class="form-hint">Sesuai dengan identitas (KTP/SIM/KTM)</span>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">
+                Email <span class="required">*</span>
+              </label>
+              <input type="email" id="email" name="email" placeholder="contoh@email.com" required>
+              <span class="form-hint">E-ticket akan dikirim ke email ini</span>
+            </div>
+            
+            <div class="form-group">
+              <label for="phone">
+                Nomor WhatsApp <span class="required">*</span>
+              </label>
+              <div class="phone-input-group">
+                <span class="phone-prefix">+62</span>
+                <input type="tel" id="phone" name="phone" placeholder="8123456789" pattern="[0-9]{9,13}" required>
+              </div>
+              <span class="form-hint">Konfirmasi pembayaran akan dikirim via WhatsApp</span>
+            </div>
+            
+            <div class="form-group">
+              <label for="idNumber">
+                Nomor Identitas (KTP/SIM/KTM) <span class="required">*</span>
+              </label>
+              <input type="text" id="idNumber" name="idNumber" placeholder="Masukkan nomor identitas" required>
+              <span class="form-hint">Untuk verifikasi saat masuk event</span>
+            </div>
+
+            <div class="form-divider"></div>
+            
+            <h3>Metode Pembayaran</h3>
+            <p class="form-subtitle">Pilih metode pembayaran yang Anda inginkan</p>
+            
+            <div class="payment-methods">
+              <div class="payment-option" data-payment="qris">
+                <input type="radio" name="payment" id="qris" value="qris" checked>
+                <label for="qris">
+                  <div class="payment-icon">
+                    <i data-feather="smartphone"></i>
+                  </div>
+                  <div class="payment-info">
+                    <h4>QRIS</h4>
+                    <p>Scan QR code dengan e-wallet</p>
+                  </div>
+                  <div class="payment-check">
+                    <i data-feather="check-circle"></i>
+                  </div>
+                </label>
+              </div>
+              
+              <div class="payment-option" data-payment="transfer">
+                <input type="radio" name="payment" id="transfer" value="transfer">
+                <label for="transfer">
+                  <div class="payment-icon">
+                    <i data-feather="credit-card"></i>
+                  </div>
+                  <div class="payment-info">
+                    <h4>Transfer Bank</h4>
+                    <p>BCA, Mandiri, BNI, BRI</p>
+                  </div>
+                  <div class="payment-check">
+                    <i data-feather="check-circle"></i>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-divider"></div>
+            
+            <div class="terms-agreement">
+              <input type="checkbox" id="agree" name="agree" required>
+              <label for="agree">
+                Saya setuju dengan <a href="#" target="_blank">syarat dan ketentuan</a> yang berlaku
+              </label>
+            </div>
+            
+            <button type="submit" class="submit-checkout-btn">
+              <i data-feather="arrow-right"></i>
+              <span>Lanjutkan Pembayaran</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!--JavaScript -->
+  <script>
+    feather.replace()
+  </script>
+
+  <script src="./js/script.js"></script>
+  <script src="./js/ticket.js"></script>
+
+</body>
+</html>

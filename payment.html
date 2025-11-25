@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!--feather iicons cdn-->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!--font awesome cdn-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!--google fonts link-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&family=Roboto:wght@100;300;400;500;700;900&display=swap"
+    rel="stylesheet">
+
+  <title>Pembayaran - UMbandung Festival 2025</title>
+</head>
+<body>
+  
+  <nav class="navbar sticky">
+    <a href="index.html" class="logo">EDMEX</a>
+    <ul class="nav-links close">
+      <li><a href="index.html#hero-section">Home</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#artists">Artists</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="#">Shop</a></li>
+    </ul>
+    <ul class="nav-icons">
+      <li><a href="#"><i data-feather="shopping-cart" class="icon"></i></a></li>
+      <li>
+        <input type="checkbox" id="menu">
+        <label for="menu" onclick="changeMenu()">
+          <div class="line line1"></div>
+          <div class="line line2"></div>
+        </label>
+      </li>
+    </ul>
+  </nav>
+
+  <section class="payment-section">
+    <div class="payment-container">
+      <div class="payment-header">
+        <div class="progress-steps">
+          <div class="step completed">
+            <span class="step-number">✓</span>
+            <span class="step-label">Data Diri</span>
+          </div>
+          <div class="step-line completed"></div>
+          <div class="step active">
+            <span class="step-number">2</span>
+            <span class="step-label">Pembayaran</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <span class="step-label">Selesai</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-content">
+        <div class="payment-main">
+          <div class="payment-info-box">
+            <div class="payment-status">
+              <i data-feather="clock" class="icon"></i>
+              <div>
+                <h3>Menunggu Pembayaran</h3>
+                <p>Selesaikan pembayaran dalam</p>
+              </div>
+            </div>
+            <div class="payment-countdown">
+              <span id="paymentTimer">23:59:45</span>
+            </div>
+          </div>
+
+          <div class="order-number-box">
+            <div class="order-info">
+              <span class="label">Nomor Pesanan</span>
+              <span class="value" id="orderNumber">UMB2025-001234</span>
+            </div>
+            <button class="copy-btn" id="copyOrderBtn">
+              <i data-feather="copy"></i>
+              <span>Salin</span>
+            </button>
+          </div>
+
+          <!-- QRIS Payment Method -->
+          <div class="payment-method-content" id="qrisMethod">
+            <h2>Pembayaran dengan QRIS</h2>
+            <p class="payment-instruction">Scan QR Code di bawah ini dengan aplikasi e-wallet Anda</p>
+
+            <div class="qr-code-container">
+              <div class="qr-code-box">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://umbandung-fest-2025.com/payment/UMB2025-001234" alt="QR Code Payment">
+              </div>
+              <p class="qr-hint">Scan menggunakan: GoPay, OVO, Dana, ShopeePay, LinkAja</p>
+            </div>
+
+            <div class="payment-steps">
+              <h3>Cara Pembayaran</h3>
+              <ol>
+                <li>
+                  <div class="step-icon">1</div>
+                  <div class="step-text">
+                    <h4>Buka Aplikasi E-Wallet</h4>
+                    <p>Pilih GoPay, OVO, Dana, ShopeePay, atau LinkAja</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-icon">2</div>
+                  <div class="step-text">
+                    <h4>Scan QR Code</h4>
+                    <p>Gunakan fitur scan QR di aplikasi Anda</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-icon">3</div>
+                  <div class="step-text">
+                    <h4>Konfirmasi Pembayaran</h4>
+                    <p>Pastikan nominal sesuai dan konfirmasi</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-icon">4</div>
+                  <div class="step-text">
+                    <h4>Pembayaran Selesai</h4>
+                    <p>E-ticket akan dikirim ke email Anda</p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Bank Transfer Payment Method -->
+          <div class="payment-method-content" id="transferMethod" style="display: none;">
+            <h2>Pembayaran via Transfer Bank</h2>
+            <p class="payment-instruction">Transfer ke salah satu rekening di bawah ini</p>
+
+            <div class="bank-accounts">
+              <div class="bank-card">
+                <div class="bank-logo">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" alt="BCA" style="height: 30px;">
+                </div>
+                <div class="bank-info">
+                  <p class="bank-name">Bank BCA</p>
+                  <p class="account-number">1234567890</p>
+                  <p class="account-name">a.n. Panitia UMbandung Festival</p>
+                </div>
+                <button class="copy-btn" onclick="copyText('1234567890')">
+                  <i data-feather="copy"></i>
+                </button>
+              </div>
+
+              <div class="bank-card">
+                <div class="bank-logo">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" alt="Mandiri" style="height: 30px;">
+                </div>
+                <div class="bank-info">
+                  <p class="bank-name">Bank Mandiri</p>
+                  <p class="account-number">0987654321</p>
+                  <p class="account-name">a.n. Panitia UMbandung Festival</p>
+                </div>
+                <button class="copy-btn" onclick="copyText('0987654321')">
+                  <i data-feather="copy"></i>
+                </button>
+              </div>
+
+              <div class="bank-card">
+                <div class="bank-logo">
+                  <img src="https://upload.wikimedia.org/wikipedia/id/5/55/BNI_logo.svg" alt="BNI" style="height: 30px;">
+                </div>
+                <div class="bank-info">
+                  <p class="bank-name">Bank BNI</p>
+                  <p class="account-number">1122334455</p>
+                  <p class="account-name">a.n. Panitia UMbandung Festival</p>
+                </div>
+                <button class="copy-btn" onclick="copyText('1122334455')">
+                  <i data-feather="copy"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="payment-steps">
+              <h3>Cara Pembayaran</h3>
+              <ol>
+                <li>
+                  <div class="step-icon">1</div>
+                  <div class="step-text">
+                    <h4>Salin Nomor Rekening</h4>
+                    <p>Pilih bank dan salin nomor rekening</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-icon">2</div>
+                  <div class="step-text">
+                    <h4>Transfer Sesuai Total</h4>
+                    <p>Transfer sejumlah <strong id="transferAmount">Rp 21.000</strong></p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-icon">3</div>
+                  <div class="step-text">
+                    <h4>Konfirmasi Pembayaran</h4>
+                    <p>Upload bukti transfer di form konfirmasi</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-icon">4</div>
+                  <div class="step-text">
+                    <h4>Menunggu Verifikasi</h4>
+                    <p>Tim kami akan verifikasi maksimal 1x24 jam</p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+
+            <div class="upload-proof-section">
+              <h3>Upload Bukti Transfer</h3>
+              <div class="upload-box" id="uploadBox">
+                <i data-feather="upload" class="icon"></i>
+                <p>Klik atau drag & drop bukti transfer di sini</p>
+                <span>Format: JPG, PNG, PDF (Max 2MB)</span>
+                <input type="file" id="proofFile" accept="image/*,.pdf" hidden>
+              </div>
+              <button class="submit-proof-btn" id="submitProofBtn" disabled>
+                <i data-feather="check"></i>
+                <span>Konfirmasi Pembayaran</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="payment-help">
+            <i data-feather="help-circle" class="icon"></i>
+            <div>
+              <h4>Butuh Bantuan?</h4>
+              <p>Hubungi kami via WhatsApp: <a href="https://wa.me/6281234567890">0812-3456-7890</a></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="payment-summary">
+          <h2>Detail Pembayaran</h2>
+          
+          <div class="buyer-info">
+            <h3>Informasi Pembeli</h3>
+            <div class="info-row">
+              <span class="label">Nama</span>
+              <span class="value" id="buyerName">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Email</span>
+              <span class="value" id="buyerEmail">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">WhatsApp</span>
+              <span class="value" id="buyerPhone">-</span>
+            </div>
+          </div>
+
+          <div class="event-info-summary">
+            <h3>Detail Event</h3>
+            <img src="./assets/umbandung-fest-2025.jpg" alt="UMbandung Festival 2025">
+            <h4>UMbandung Festival 2025</h4>
+            <div class="info-row">
+              <i data-feather="calendar" class="icon"></i>
+              <span>29 November 2025</span>
+            </div>
+            <div class="info-row">
+              <i data-feather="clock" class="icon"></i>
+              <span>10:00 WIB</span>
+            </div>
+            <div class="info-row">
+              <i data-feather="map-pin" class="icon"></i>
+              <span>Lapangan Adymic UMbandung</span>
+            </div>
+          </div>
+
+          <div class="price-summary-box">
+            <h3>Rincian Harga</h3>
+            <div class="price-item">
+              <span>Regular Ticket x <span id="summaryQty">1</span></span>
+              <span id="summarySubtotal">Rp 20.000</span>
+            </div>
+            <div class="price-item">
+              <span>Biaya Admin</span>
+              <span id="summaryAdminFee">Rp 1.000</span>
+            </div>
+            <div class="price-divider"></div>
+            <div class="price-item total">
+              <span>Total Pembayaran</span>
+              <span id="summaryTotal">Rp 21.000</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!--JavaScript -->
+  <script>
+    feather.replace()
+  </script>
+
+  <script src="./js/script.js"></script>
+  <script src="./js/ticket.js"></script>
+
+</body>
+</html>

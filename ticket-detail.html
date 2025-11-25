@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!--feather iicons cdn-->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!--font awesome cdn-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!--google fonts link-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&family=Roboto:wght@100;300;400;500;700;900&display=swap"
+    rel="stylesheet">
+
+  <title>UMbandung Festival 2025 - Ticket Detail</title>
+</head>
+<body>
+  
+  <nav class="navbar sticky">
+    <a href="index.html" class="logo">EDMEX</a>
+    <ul class="nav-links close">
+      <li><a href="index.html#hero-section">Home</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#artists">Artists</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="#">Shop</a></li>
+    </ul>
+    <ul class="nav-icons">
+      <li><a href="#"><i data-feather="shopping-cart" class="icon"></i></a></li>
+      <li>
+        <input type="checkbox" id="menu">
+        <label for="menu" onclick="changeMenu()">
+          <div class="line line1"></div>
+          <div class="line line2"></div>
+        </label>
+      </li>
+    </ul>
+  </nav>
+
+  <section class="ticket-detail-section">
+    <div class="ticket-container">
+      <div class="ticket-image-side">
+        <img src="./assets/umbandung-fest-2025.jpg" alt="UMbandung Festival 2025" class="ticket-poster">
+        <div class="event-badge">
+          <i data-feather="star" class="icon"></i>
+          <span>Hot Event!</span>
+        </div>
+      </div>
+      
+      <div class="ticket-info-side">
+        <div class="back-button">
+          <a href="index.html">
+            <i data-feather="arrow-left" class="icon"></i>
+            <span>Kembali</span>
+          </a>
+        </div>
+
+        <h1 class="event-title-main">UMbandung Festival 2025</h1>
+        <p class="event-tagline">Lentera Kabinet BEM UM Bandung 2024-2025</p>
+        
+        <div class="event-details-grid">
+          <div class="detail-item">
+            <i data-feather="calendar" class="icon"></i>
+            <div class="detail-content">
+              <p class="label">Tanggal Event</p>
+              <p class="value">29 November 2025</p>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <i data-feather="clock" class="icon"></i>
+            <div class="detail-content">
+              <p class="label">Waktu Mulai</p>
+              <p class="value">10:00 WIB</p>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <i data-feather="map-pin" class="icon"></i>
+            <div class="detail-content">
+              <p class="label">Lokasi</p>
+              <p class="value">Lapangan Adymic UMbandung</p>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <i data-feather="music" class="icon"></i>
+            <div class="detail-content">
+              <p class="label">Featured Artists</p>
+              <p class="value">Vierra, Marsburn, Yeast, Weeds</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="featured-artists-logos">
+          <h3>Supported By:</h3>
+          <div class="sponsors">
+            <span class="sponsor-badge">Marsburn</span>
+            <span class="sponsor-badge">Yeast</span>
+            <span class="sponsor-badge">Weeds</span>
+            <span class="sponsor-badge">Humpro</span>
+          </div>
+        </div>
+        
+        <div class="ticket-type-section">
+          <h3>Pilih Jenis Tiket</h3>
+          <div class="ticket-option selected" data-price="20000">
+            <input type="radio" name="ticket" id="regular" value="regular" checked>
+            <label for="regular">
+              <div class="ticket-info-box">
+                <div class="ticket-header">
+                  <h4>Regular Ticket</h4>
+                  <div class="ticket-price">
+                    <span class="price-label">Rp</span>
+                    <span class="price-value">20.000</span>
+                  </div>
+                </div>
+                <p class="ticket-description">✓ Akses ke semua area festival</p>
+                <p class="ticket-description">✓ Standing area</p>
+                <p class="ticket-description">✓ E-ticket dengan QR Code</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <div class="quantity-section">
+          <h3>Jumlah Tiket</h3>
+          <div class="quantity-control">
+            <button class="qty-btn" id="minusBtn">
+              <i data-feather="minus"></i>
+            </button>
+            <input type="number" id="quantity" value="1" min="1" max="5" readonly>
+            <button class="qty-btn" id="plusBtn">
+              <i data-feather="plus"></i>
+            </button>
+          </div>
+          <p class="max-info">
+            <i data-feather="info" class="icon"></i>
+            Maksimal 5 tiket per transaksi
+          </p>
+        </div>
+        
+        <div class="price-summary">
+          <div class="price-row">
+            <span>Harga Tiket (<span id="ticketQty">1</span>x)</span>
+            <span id="ticketPrice">Rp 20.000</span>
+          </div>
+          <div class="price-row">
+            <span>Biaya Admin</span>
+            <span id="adminFee">Rp 1.000</span>
+          </div>
+          <div class="price-divider"></div>
+          <div class="price-row total">
+            <span>Total Pembayaran</span>
+            <span id="totalPrice">Rp 21.000</span>
+          </div>
+        </div>
+        
+        <button class="checkout-btn" id="checkoutBtn">
+          <i data-feather="shopping-cart"></i>
+          <span>Lanjutkan Pembelian</span>
+        </button>
+
+        <div class="ticket-info-footer">
+          <p><i data-feather="shield" class="icon"></i> Transaksi aman & terpercaya</p>
+          <p><i data-feather="clock" class="icon"></i> Tiket berlaku hingga 29 Nov 2025</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!--JavaScript -->
+  <script>
+    feather.replace()
+  </script>
+
+  <script src="./js/script.js"></script>
+  <script src="./js/ticket.js"></script>
+
+</body>
+</html>

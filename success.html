@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!--feather iicons cdn-->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!--font awesome cdn-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!--google fonts link-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&family=Roboto:wght@100;300;400;500;700;900&display=swap"
+    rel="stylesheet">
+
+  <title>Pembayaran Berhasil - UMbandung Festival 2025</title>
+</head>
+<body>
+  
+  <nav class="navbar sticky">
+    <a href="index.html" class="logo">EDMEX</a>
+    <ul class="nav-links close">
+      <li><a href="index.html#hero-section">Home</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#artists">Artists</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="#">Shop</a></li>
+    </ul>
+    <ul class="nav-icons">
+      <li><a href="#"><i data-feather="shopping-cart" class="icon"></i></a></li>
+      <li>
+        <input type="checkbox" id="menu">
+        <label for="menu" onclick="changeMenu()">
+          <div class="line line1"></div>
+          <div class="line line2"></div>
+        </label>
+      </li>
+    </ul>
+  </nav>
+
+  <section class="success-section">
+    <div class="success-container">
+      <div class="success-animation">
+        <div class="checkmark-circle">
+          <div class="checkmark-icon">
+            <i data-feather="check"></i>
+          </div>
+        </div>
+        <h1>Pembayaran Berhasil!</h1>
+        <p class="success-message">Terima kasih telah melakukan pemesanan tiket UMbandung Festival 2025</p>
+      </div>
+
+      <div class="progress-steps-success">
+        <div class="step completed">
+          <span class="step-number">✓</span>
+          <span class="step-label">Data Diri</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="step completed">
+          <span class="step-number">✓</span>
+          <span class="step-label">Pembayaran</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="step completed">
+          <span class="step-number">✓</span>
+          <span class="step-label">Selesai</span>
+        </div>
+      </div>
+
+      <div class="eticket-container">
+        <div class="eticket-card">
+          <div class="eticket-header">
+            <h2>E-Ticket</h2>
+            <span class="ticket-status">VALID</span>
+          </div>
+
+          <div class="eticket-content">
+            <div class="event-poster">
+              <img src="./assets/umbandung-fest-2025.jpg" alt="UMbandung Festival 2025">
+            </div>
+
+            <div class="ticket-details">
+              <h3>UMbandung Festival 2025</h3>
+              <p class="ticket-subtitle">Lentera Kabinet BEM UM Bandung 2024-2025</p>
+
+              <div class="ticket-info-grid">
+                <div class="ticket-info-item">
+                  <i data-feather="hash" class="icon"></i>
+                  <div>
+                    <span class="label">Nomor Tiket</span>
+                    <span class="value" id="ticketNumber">UMB2025-001234-001</span>
+                  </div>
+                </div>
+
+                <div class="ticket-info-item">
+                  <i data-feather="user" class="icon"></i>
+                  <div>
+                    <span class="label">Nama Pemegang</span>
+                    <span class="value" id="ticketHolderName">John Doe</span>
+                  </div>
+                </div>
+
+                <div class="ticket-info-item">
+                  <i data-feather="calendar" class="icon"></i>
+                  <div>
+                    <span class="label">Tanggal Event</span>
+                    <span class="value">Jumat, 29 November 2025</span>
+                  </div>
+                </div>
+
+                <div class="ticket-info-item">
+                  <i data-feather="clock" class="icon"></i>
+                  <div>
+                    <span class="label">Waktu</span>
+                    <span class="value">10:00 WIB</span>
+                  </div>
+                </div>
+
+                <div class="ticket-info-item">
+                  <i data-feather="map-pin" class="icon"></i>
+                  <div>
+                    <span class="label">Lokasi</span>
+                    <span class="value">Lapangan Adymic UMbandung</span>
+                  </div>
+                </div>
+
+                <div class="ticket-info-item">
+                  <i data-feather="tag" class="icon"></i>
+                  <div>
+                    <span class="label">Jenis Tiket</span>
+                    <span class="value">Regular Ticket</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="qr-code-section">
+                <div class="qr-code-ticket">
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=UMB2025-001234-001" alt="Ticket QR Code">
+                </div>
+                <p class="qr-instruction">Tunjukkan QR Code ini saat masuk event</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="eticket-footer">
+            <div class="ticket-notice">
+              <i data-feather="alert-circle" class="icon"></i>
+              <div>
+                <h4>Penting!</h4>
+                <ul>
+                  <li>Screenshot atau simpan QR Code ini</li>
+                  <li>Tunjukkan saat masuk lokasi event</li>
+                  <li>Tiket hanya berlaku untuk 1 orang</li>
+                  <li>Bawa identitas sesuai data pemesanan</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button class="action-btn primary" id="downloadTicketBtn">
+            <i data-feather="download"></i>
+            <span>Download E-Ticket</span>
+          </button>
+          <button class="action-btn secondary" id="shareTicketBtn">
+            <i data-feather="share-2"></i>
+            <span>Bagikan via WhatsApp</span>
+          </button>
+          <button class="action-btn secondary" id="printTicketBtn">
+            <i data-feather="printer"></i>
+            <span>Print Tiket</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="next-steps">
+        <h2>Langkah Selanjutnya</h2>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <i data-feather="mail" class="icon"></i>
+            <h3>Cek Email</h3>
+            <p>E-ticket sudah dikirim ke email Anda</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <i data-feather="save" class="icon"></i>
+            <h3>Simpan Tiket</h3>
+            <p>Download dan simpan e-ticket dengan aman</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <i data-feather="calendar" class="icon"></i>
+            <h3>Tandai Kalender</h3>
+            <p>Jangan lupa datang tepat waktu!</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">4</div>
+            <i data-feather="credit-card" class="icon"></i>
+            <h3>Bawa Identitas</h3>
+            <p>Sesuai dengan data pemesanan</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-support">
+        <div class="support-box">
+          <i data-feather="headphones" class="icon"></i>
+          <div>
+            <h3>Butuh Bantuan?</h3>
+            <p>Tim kami siap membantu Anda 24/7</p>
+            <div class="support-links">
+              <a href="https://wa.me/6281234567890" class="support-link">
+                <i class="fa-brands fa-whatsapp"></i>
+                <span>WhatsApp: 0812-3456-7890</span>
+              </a>
+              <a href="mailto:info@umbandungfest.com" class="support-link">
+                <i data-feather="mail"></i>
+                <span>info@umbandungfest.com</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-button">
+        <a href="index.html" class="btn-home">
+          <i data-feather="home"></i>
+          <span>Kembali ke Beranda</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!--JavaScript -->
+  <script>
+    feather.replace()
+  </script>
+
+  <script src="./js/script.js"></script>
+  <script src="./js/ticket.js"></script>
+
+</body>
+</html>
