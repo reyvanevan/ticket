@@ -67,9 +67,9 @@ try {
     $proofFileUrl = $data['proofFileUrl'] ?? null;
     $orderDate = $data['orderDate'] ?? date('Y-m-d H:i:s');
     
-    // Bind parameters
+    // Bind parameters (14 params: s=string, i=integer)
     $stmt->bind_param(
-        'sssssiisissssss',
+        'sssssiiisissss',  // 14 types: order_number(s), full_name(s), email(s), phone(s), id_number(s), quantity(i), ticket_price(i), admin_fee(i), total(i), payment_method(s), status(s), proof_file_name(s), proof_file_url(s), order_date(s)
         $data['orderNumber'],
         $data['fullName'],
         $data['email'],
