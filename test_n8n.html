@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test n8n Webhook</title>
+  <title>Test n8n Webhook + QR Generation</title>
+  
+  <!-- QR Code Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -95,8 +99,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>🧪 Test n8n Webhook</h1>
-    <p>Kirim test data ke n8n webhook untuk validasi integrasi email.</p>
+    <h1>🧪 Test n8n Webhook + QR Generation</h1>
+    <p>Test complete flow: Generate QR → Send to n8n → Check email attachment.</p>
     
     <div class="input-group">
       <label for="nama">Nama Pembeli:</label>
@@ -155,13 +159,33 @@
       };
 
       resultDiv.className = 'info';
-      resultDiv.textContent = '⏳ Mengirim data ke n8n...\n\n';
-      resultDiv.textContent += '📤 WEBHOOK URL:\n' + N8N_WEBHOOK_URL + '\n\n';
-      resultDiv.textContent += '📦 DATA DIKIRIM:\n' + JSON.stringify(testData, null, 2) + '\n\n';
-      resultDiv.textContent += '⏱️ Tunggu response...\n\n';
+      resultDiv.textContent = '⏳ Step 1: Generating QR Code...\n\n';
 
       try {
         const startTime = Date.now();
+        
+        // STEP 1: Generate QR Code (like admin.js does)
+        let qrBase64 = null;
+        try {
+          qrBase64 = await generateQRCode(testData.kode_tiket);
+          resultDiv.textContent += '✅ QR Code generated successfully\n';
+          resultDiv.textContent += `QR Data Length: ${qrBase64.length} chars\n\n`;
+        } catch (qrError) {
+          resultDiv.textContent += '❌ QR Generation failed: ' + qrError.message + '\n\n';
+          // Continue without QR
+        }
+
+        // Add QR to payload if generated
+        if (qrBase64) {
+          testData.ticket_image_base64 = qrBase64;
+        }
+
+        resultDiv.textContent += '⏳ Step 2: Sending to n8n...\n\n';
+        resultDiv.textContent += '📤 WEBHOOK URL:\n' + N8N_WEBHOOK_URL + '\n\n';
+        resultDiv.textContent += '📦 DATA DIKIRIM:\n' + JSON.stringify({
+          ...testData,
+          ticket_image_base64: qrBase64 ? `[BASE64 DATA - ${qrBase64.length} chars]` : 'NOT GENERATED'
+        }, null, 2) + '\n\n';
         
         const response = await fetch(N8N_WEBHOOK_URL, {
           method: 'POST',
@@ -186,7 +210,7 @@
         
         if (response.ok) {
           resultDiv.className = 'success';
-          resultDiv.textContent = '✅ SUKSES!\n\n';
+          resultDiv.textContent += '\n✅ SUKSES!\n\n';
           resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n';
           resultDiv.textContent += '📊 HTTP Status: ' + response.status + '\n\n';
           resultDiv.textContent += '📥 RESPONSE:\n';
@@ -194,10 +218,13 @@
             JSON.stringify(responseJSON, null, 2) : 
             responseText;
           resultDiv.textContent += '\n\n✨ Data berhasil diterima oleh n8n!\n';
+          resultDiv.textContent += qrBase64 ? 
+            '📎 QR Code attachment included!\n' : 
+            '⚠️ Email sent without QR attachment.\n';
           resultDiv.textContent += '💡 Cek email untuk validasi apakah email masuk.';
         } else {
           resultDiv.className = 'error';
-          resultDiv.textContent = '❌ GAGAL!\n\n';
+          resultDiv.textContent += '\n❌ GAGAL!\n\n';
           resultDiv.textContent += '📊 HTTP Status: ' + response.status + ' ' + response.statusText + '\n';
           resultDiv.textContent += '⏱️ Response Time: ' + duration + 'ms\n\n';
           resultDiv.textContent += '📥 RESPONSE:\n';
@@ -211,23 +238,68 @@
           status: response.status,
           statusText: response.statusText,
           duration: duration + 'ms',
+          hasQR: !!qrBase64,
           response: responseJSON || responseText
         });
 
       } catch (error) {
         resultDiv.className = 'error';
-        resultDiv.textContent = '❌ ERROR!\n\n';
+        resultDiv.textContent += '\n❌ ERROR!\n\n';
         resultDiv.textContent += '🚨 ' + error.toString() + '\n\n';
         resultDiv.textContent += '💡 Kemungkinan masalah:\n';
         resultDiv.textContent += '- URL webhook salah atau offline\n';
         resultDiv.textContent += '- Network timeout (30 detik)\n';
-        resultDiv.textContent += '- CORS issue (check browser console)\n\n';
+        resultDiv.textContent += '- CORS issue (check browser console)\n';
+        resultDiv.textContent += '- QR generation failed\n\n';
         resultDiv.textContent += 'Cek developer console (F12) untuk detail error.';
 
         console.error('n8n Webhook Test Error:', error);
       }
 
       button.disabled = false;
+    }
+
+    // QR Code Generation Function (copy from utils.js)
+    async function generateQRCode(ticketCode) {
+      // Try using QRCode library if loaded
+      if (typeof QRCode !== 'undefined') {
+        return new Promise((resolve, reject) => {
+          QRCode.toDataURL(ticketCode, {
+            width: 512,
+            margin: 2,
+            errorCorrectionLevel: 'H',
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          }, (err, url) => {
+            if (err) {
+              console.warn('QRCode library failed, trying API fallback...');
+              resolve(generateQRViaAPI(ticketCode));
+            } else {
+              resolve(url);
+            }
+          });
+        });
+      } else {
+        console.warn('QRCode library not loaded, using API fallback...');
+        return generateQRViaAPI(ticketCode);
+      }
+    }
+
+    // Fallback: Generate QR via Google Charts API
+    async function generateQRViaAPI(ticketCode) {
+      const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=512x512&chl=${encodeURIComponent(ticketCode)}&choe=UTF-8`;
+      
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
     }
 
     function clearForm() {
