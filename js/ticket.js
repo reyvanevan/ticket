@@ -331,8 +331,9 @@ if (window.location.pathname.includes('payment.html')) {
         feather.replace();
 
         try {
-          // Simulate file upload (in production, this would be API call)
+          // Upload proof to remote image host (imgbb) with fallback
           const uploadResult = await simulateFileUpload(file);
+          console.log('Proof upload result:', uploadResult);
           
           if (uploadResult.success) {
             // Update order status: PENDING_PAYMENT → WAITING_VERIFICATION

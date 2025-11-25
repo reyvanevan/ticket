@@ -79,6 +79,16 @@ const CONFIG = {
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.pdf']
   },
 
+  // Remote Image Upload Provider (proof of payment)
+  imageUpload: {
+    enabled: true,
+    provider: 'imgbb',
+    apiKey: '1b585ca152f56b36c580826d1f4cdea1', // NOTE: Consider hiding this key in production.
+    endpoint: 'https://api.imgbb.com/1/upload',
+    // Fallback: if imgbb fails, we temporarily keep base64 in local storage only (not recommended for production)
+    fallbackToBase64: true
+  },
+
   // API Endpoints (untuk future development)
   api: {
     baseUrl: 'https://api.umbandungfest.com', // Ganti dengan domain lo

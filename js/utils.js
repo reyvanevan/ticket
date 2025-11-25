@@ -310,33 +310,72 @@ function createTicketWhatsAppMessage(ticketData) {
 }
 
 /**
- * Simulate file upload - Convert to base64 for persistence
- * @param {File} file - File to upload
- * @returns {Promise<Object>} Upload result with base64 data
+ * Upload proof image to remote provider (imgbb)
+ * Falls back to base64 (local only) if upload fails and fallback enabled.
+ * @param {File} file
+ * @returns {Promise<{success:boolean,fileUrl:string,fileName:string,uploadedAt:string,provider?:string,deleteUrl?:string}>}
  */
-async function simulateFileUpload(file) {
+async function simulateFileUpload(file) { // keep function name for existing callers
+  const cfg = (typeof CONFIG !== 'undefined') ? CONFIG.imageUpload : null;
+  if (!cfg || !cfg.enabled) {
+    return base64LocalFallback(file, 'upload-disabled');
+  }
+
+  if (cfg.provider === 'imgbb') {
+    try {
+      // Use multipart/form-data with binary file
+      const formData = new FormData();
+      formData.append('key', cfg.apiKey);
+      formData.append('image', file); // imgbb accepts direct file blob
+
+      const response = await fetch(cfg.endpoint, {
+        method: 'POST',
+        body: formData
+      });
+
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.error?.message || 'Upload failed');
+      }
+
+      return {
+        success: true,
+        fileUrl: json.data.url,         // public URL
+        fileName: file.name,
+        uploadedAt: new Date().toISOString(),
+        provider: 'imgbb',
+        deleteUrl: json.data.delete_url || null
+      };
+    } catch (err) {
+      console.error('imgbb upload failed:', err.message);
+      if (cfg.fallbackToBase64) {
+        return base64LocalFallback(file, 'fallback-base64');
+      }
+      throw err;
+    }
+  }
+
+  // Unknown provider fallback
+  return base64LocalFallback(file, 'unknown-provider');
+}
+
+/**
+ * Convert file to base64 (local storage only) as fallback
+ */
+function base64LocalFallback(file, reason) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
     reader.onload = () => {
-      // Convert file to base64 data URL
-      const base64String = reader.result;
-      
-      setTimeout(() => {
-        resolve({
-          success: true,
-          fileUrl: base64String,  // Base64 data URL (can be stored & displayed)
-          fileName: file.name,
-          uploadedAt: new Date().toISOString()
-        });
-      }, 1500);
+      resolve({
+        success: true,
+        fileUrl: reader.result, // data URL
+        fileName: file.name,
+        uploadedAt: new Date().toISOString(),
+        provider: 'base64-local',
+        fallbackReason: reason
+      });
     };
-    
-    reader.onerror = () => {
-      reject(new Error('Failed to read file'));
-    };
-    
-    // Read file as base64 data URL
+    reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
 }
