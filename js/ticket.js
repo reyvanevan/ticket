@@ -167,6 +167,28 @@ if (window.location.pathname.includes('checkout.html')) {
         return;
       }
 
+      // VALIDATION: 1 email = 1 ticket (check existing orders in localStorage)
+      const existingOrders = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('order_')) {
+          try {
+            const order = JSON.parse(localStorage.getItem(key));
+            if (order && order.buyer && order.buyer.email) {
+              existingOrders.push(order.buyer.email.toLowerCase());
+            }
+          } catch (error) {
+            console.error('Error parsing order:', error);
+          }
+        }
+      }
+
+      // Check if email already used
+      if (existingOrders.includes(formData.email.toLowerCase())) {
+        showAlert('⚠️ Email ini sudah digunakan untuk membeli tiket!\n\nSetiap email hanya dapat membeli 1 tiket.\nGunakan email lain untuk pembelian baru.', 'error');
+        return;
+      }
+
       // Combine buyer data with order data
       const completeOrderData = {
         ...orderData,

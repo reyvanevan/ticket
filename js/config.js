@@ -16,6 +16,7 @@ const CONFIG = {
     locationFull: 'Lapangan Adymic, Universitas Muhammadiyah Bandung',
     image: './assets/umbandung-fest-2025.jpg',
     artists: ['Vierra', 'Marsburn', 'Yeast', 'Weeds'],
+    guestStars: ['Talkshow', 'Shakira Pemenang COC'],
     sponsors: ['Marsburn', 'Yeast', 'Weeds', 'Humpro']
   },
 
