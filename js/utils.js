@@ -360,7 +360,7 @@ function isOrderExpired(orderDate, expirySeconds = 86400) {
 // ============================================
 
 /**
- * Generate QR code for ticket
+ * Generate QR code for ticket (Simple - no template overlay)
  * @param {string} ticketCode - Ticket code (e.g., TIX-UMB20251125-001)
  * @returns {Promise<string>} QR code data URL (base64)
  */
@@ -372,9 +372,9 @@ async function generateTicketQR(ticketCode) {
     }
     
     QRCode.toDataURL(ticketCode, {
-      width: 300,
-      margin: 0,
-      errorCorrectionLevel: 'H',
+      width: 512,           // Larger size for better quality
+      margin: 2,            // White border
+      errorCorrectionLevel: 'H',  // High error correction
       color: {
         dark: '#000000',
         light: '#FFFFFF'
@@ -387,52 +387,24 @@ async function generateTicketQR(ticketCode) {
 }
 
 /**
- * Create ticket image with QR code overlay
+ * Create ticket image with QR code (SIMPLIFIED - QR only, no template)
  * @param {Object} ticketData - Ticket information {kode_tiket, nama, order_number, quantity}
- * @returns {Promise<string>} Ticket image data URL (base64)
+ * @returns {Promise<string>} QR code image data URL (base64)
  */
 async function createTicketWithQR(ticketData) {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // Load template image
-  const template = await loadImage('assets/ticket_template.png');
-  canvas.width = template.width;
-  canvas.height = template.height;
-  
-  // Draw template
-  ctx.drawImage(template, 0, 0);
-  
-  // Generate QR code
-  const qrDataURL = await generateTicketQR(ticketData.kode_tiket);
-  const qrImage = await loadImage(qrDataURL);
-  
-  // Calculate QR position (panel merah kanan)
-  const panelStartX = canvas.width * 0.72;  // Panel merah mulai 72%
-  const panelWidth = canvas.width * 0.28;   // Lebar panel 28%
-  const qrSize = Math.min(panelWidth * 0.85, canvas.height * 0.55);
-  const qrX = panelStartX + (panelWidth - qrSize) / 2;
-  const qrY = canvas.height * 0.20;  // 20% dari atas
-  
-  // Draw QR code
-  ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
-  
-  // Return base64 image
-  return canvas.toDataURL('image/png');
-}
-
-/**
- * Load image helper
- * @param {string} src - Image source URL
- * @returns {Promise<HTMLImageElement>} Loaded image
- */
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-    img.src = src;
-  });
+  try {
+    // Simply generate QR code without template overlay
+    const qrDataURL = await generateTicketQR(ticketData.kode_tiket);
+    
+    console.log('✅ QR Code generated for:', ticketData.kode_tiket);
+    
+    // Return QR code directly (no template needed)
+    return qrDataURL;
+    
+  } catch (error) {
+    console.error('Failed to generate QR:', error);
+    throw error;
+  }
 }
 
 // Export utilities (untuk module)
