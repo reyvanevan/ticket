@@ -408,7 +408,7 @@ if (window.location.pathname.includes('payment.html')) {
             
             // Redirect to waiting verification page
             setTimeout(() => {
-              showLoadingAndRedirect('success.html');
+              showLoadingAndRedirect('waiting-verification.html');
             }, 1500);
           } else {
             throw new Error('Upload failed');
