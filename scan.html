@@ -4,13 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Ticket Scanner</title>
+    <!-- Load Library Scanner & Alert -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
-        body { font-family: sans-serif; background: #222; color: #fff; text-align: center; }
-        #reader { width: 100%; max-width: 500px; margin: 0 auto; background: #000; }
-        .result { margin-top: 20px; font-size: 1.2rem; }
-        .btn { padding: 10px 20px; background: cyan; border: none; font-weight: bold; cursor: pointer; margin-top: 20px;}
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; }
+        h2 { color: #00e5ff; margin-bottom: 20px; }
+        
+        /* Kotak Kamera */
+        #reader { 
+            width: 100%; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            border: 2px solid #333; 
+            border-radius: 10px; 
+            overflow: hidden;
+        }
+        
+        /* Status Text */
+        #status { 
+            margin-top: 20px; 
+            font-size: 1.1rem; 
+            color: #aaa; 
+            font-style: italic;
+        }
+
+        /* Tombol Reset (Kalau mau scan ulang manual) */
+        .btn-reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -21,19 +50,20 @@
 
     <script>
         // ==========================================
-        // Use check-ticket.php (renamed to bypass firewall)
+        // Scanner config: use check-ticket.php (renamed to bypass firewall)
         // ==========================================
         const SCAN_API_URL = '/check-ticket.php';
         // ==========================================
 
-        let isScanning = true;
+        let isScanning = true; // Flag biar gak double scan
 
         async function onScanSuccess(decodedText, decodedResult) {
-            if (!isScanning) return;
+            if (!isScanning) return; // Cegah spam request
             
-            // 1. Stop scanning bentar biar gak double request
+            // 1. Stop scanning sementara
             isScanning = false;
-            document.getElementById('status').innerText = "Memproses: " + decodedText;
+            document.getElementById('status').innerText = "⏳ Memproses: " + decodedText;
+            document.getElementById('status').style.color = "#ffeb3b"; // Kuning
 
             try {
                 // 2. Hit PHP API directly
@@ -45,7 +75,6 @@
                     },
                     body: JSON.stringify({ code: decodedText })
                 });
-
                 const responseText = await response.text();
                 console.log('Raw response:', responseText);
                 
@@ -58,6 +87,7 @@
                     throw new Error('Invalid response from server. Check console for details.');
                 }
 
+                // 3. Cek Hasil
                 if (result.status === 'success') {
                     // TIKET VALID - Green alert with ticket info
                     await Swal.fire({
@@ -94,18 +124,30 @@
                     confirmButtonText: 'OK'
                 });
             } finally {
-                // Lanjut scan lagi setelah alert tutup
+                // 4. Reset Status & Lanjut Scan
                 isScanning = true;
-                document.getElementById('status').innerText = "Siap Scan Lagi...";
+                document.getElementById('status').innerText = "✅ Siap Scan Lagi...";
+                document.getElementById('status').style.color = "#4caf50"; // Hijau
             }
         }
 
+        function onScanFailure(error) {
+            // Biarin kosong biar console gak penuh spam error scanning
+            // console.warn(`Code scan error = ${error}`);
+        }
+
+        // Inisialisasi Scanner
         let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            { fps: 10, qrbox: {width: 250, height: 250} },
+            "reader",
+            { 
+                fps: 10, 
+                qrbox: {width: 250, height: 250},
+                aspectRatio: 1.0
+            },
             /* verbose= */ false
         );
-        html5QrcodeScanner.render(onScanSuccess);
+        
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
     </script>
 
 </body>
