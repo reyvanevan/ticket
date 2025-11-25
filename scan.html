@@ -46,7 +46,17 @@
                     body: JSON.stringify({ code: decodedText })
                 });
 
-                const result = await response.json();
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Response text:', responseText);
+                    throw new Error('Invalid response from server. Check console for details.');
+                }
 
                 if (result.status === 'success') {
                     // TIKET VALID - Green alert with ticket info
