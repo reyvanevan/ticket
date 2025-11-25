@@ -19,8 +19,13 @@
     <div id="reader"></div>
     <div id="status" class="result">Arahkan kamera ke QR Code...</div>
     
-    <audio id="sound-ok" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
-    <audio id="sound-fail" src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"></audio>
+    <!-- Audio preload untuk prevent error -->
+    <audio id="sound-ok" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-fail" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         // ==========================================
@@ -50,7 +55,11 @@
 
                 if (result.status === 'success') {
                     // TIKET VALID
-                    document.getElementById('sound-ok').play();
+                    try {
+                        await document.getElementById('sound-ok').play();
+                    } catch (e) {
+                        console.log('Audio play blocked:', e);
+                    }
                     await Swal.fire({
                         icon: 'success',
                         title: 'TIKET VALID ✅',
@@ -60,7 +69,11 @@
                     });
                 } else {
                     // TIKET BASI / PALSU
-                    document.getElementById('sound-fail').play();
+                    try {
+                        await document.getElementById('sound-fail').play();
+                    } catch (e) {
+                        console.log('Audio play blocked:', e);
+                    }
                     await Swal.fire({
                         icon: 'error',
                         title: 'DITOLAK ❌',
