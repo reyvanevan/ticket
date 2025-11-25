@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Ticket Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: sans-serif; background: #222; color: #fff; text-align: center; }
+        #reader { width: 100%; max-width: 500px; margin: 0 auto; background: #000; }
+        .result { margin-top: 20px; font-size: 1.2rem; }
+        .btn { padding: 10px 20px; background: cyan; border: none; font-weight: bold; cursor: pointer; margin-top: 20px;}
+    </style>
+</head>
+<body>
+
+    <h2>👮‍♂️ Gatekeeper Scanner</h2>
+    <div id="reader"></div>
+    <div id="status" class="result">Arahkan kamera ke QR Code...</div>
+    
+    <audio id="sound-ok" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+    <audio id="sound-fail" src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"></audio>
+
+    <script>
+        // ==========================================
+        // 👇 GANTI PAKE PRODUCTION URL n8n SCANNER LU
+        // ==========================================
+        const SCAN_API_URL = 'https://revy.app.n8n.cloud/webhook/scan-ticket';
+        // ==========================================
+
+        let isScanning = true;
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            if (!isScanning) return;
+            
+            // 1. Stop scanning bentar biar gak double request
+            isScanning = false;
+            document.getElementById('status').innerText = "Memproses: " + decodedText;
+
+            try {
+                // 2. Tembak n8n
+                const response = await fetch(SCAN_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: decodedText })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // TIKET VALID
+                    document.getElementById('sound-ok').play();
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'TIKET VALID ✅',
+                        text: 'Silakan Masuk! (' + decodedText + ')',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    // TIKET BASI / PALSU
+                    document.getElementById('sound-fail').play();
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'DITOLAK ❌',
+                        text: result.message,
+                    });
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Error Koneksi n8n!");
+            } finally {
+                // Lanjut scan lagi setelah alert tutup
+                isScanning = true;
+                document.getElementById('status').innerText = "Siap Scan Lagi...";
+            }
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false
+        );
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+
+</body>
+</html>

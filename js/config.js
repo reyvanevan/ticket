@@ -87,7 +87,8 @@ const CONFIG = {
       saveOrder: '/save_order.php',        // Absolute path dari root
       sendEmail: '/send_ticket_email.php',
       getOrders: '/get_orders.php',
-      updateOrderStatus: '/update_order_status.php'
+      updateOrderStatus: '/update_order_status.php',
+      generateTickets: '/generate_tickets.php'  // NEW: Generate tickets for order
     },
     // N8N Webhook URL - GANTI DENGAN URL PRODUCTION LO!
     n8nWebhook: 'https://revy.app.n8n.cloud/webhook/new-order', // TODO: Update ini!
