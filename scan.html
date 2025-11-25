@@ -18,20 +18,12 @@
     <h2>👮‍♂️ Gatekeeper Scanner</h2>
     <div id="reader"></div>
     <div id="status" class="result">Arahkan kamera ke QR Code...</div>
-    
-    <!-- Audio preload untuk prevent error -->
-    <audio id="sound-ok" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-fail" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3" type="audio/mpeg">
-    </audio>
 
     <script>
         // ==========================================
-        // 👇 GANTI PAKE PRODUCTION URL n8n SCANNER LU
+        // Direct hit to PHP API (no n8n)
         // ==========================================
-        const SCAN_API_URL = 'https://revy.app.n8n.cloud/webhook/scan-ticket';
+        const SCAN_API_URL = '/api-scan.php';
         // ==========================================
 
         let isScanning = true;
@@ -44,46 +36,53 @@
             document.getElementById('status').innerText = "Memproses: " + decodedText;
 
             try {
-                // 2. Tembak n8n
+                // 2. Hit PHP API directly
                 const response = await fetch(SCAN_API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify({ code: decodedText })
                 });
 
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    // TIKET VALID
-                    try {
-                        await document.getElementById('sound-ok').play();
-                    } catch (e) {
-                        console.log('Audio play blocked:', e);
-                    }
+                    // TIKET VALID - Green alert with ticket info
                     await Swal.fire({
                         icon: 'success',
-                        title: 'TIKET VALID ✅',
-                        text: 'Silakan Masuk! (' + decodedText + ')',
-                        timer: 2000,
-                        showConfirmButton: false
+                        title: '✅ TIKET VALID!',
+                        html: `
+                            <strong>Silakan Masuk</strong><br><br>
+                            Nama: ${result.data.nama}<br>
+                            Tiket: ${result.data.ticket_number}
+                        `,
+                        timer: 3000,
+                        showConfirmButton: false,
+                        background: '#d4edda',
+                        iconColor: '#28a745'
                     });
                 } else {
-                    // TIKET BASI / PALSU
-                    try {
-                        await document.getElementById('sound-fail').play();
-                    } catch (e) {
-                        console.log('Audio play blocked:', e);
-                    }
+                    // TIKET DITOLAK - Red alert with error message
                     await Swal.fire({
                         icon: 'error',
-                        title: 'DITOLAK ❌',
+                        title: '❌ DITOLAK!',
                         text: result.message,
+                        confirmButtonText: 'OK',
+                        background: '#f8d7da',
+                        iconColor: '#dc3545'
                     });
                 }
 
             } catch (error) {
-                console.error(error);
-                alert("Error Koneksi n8n!");
+                console.error('Scan error:', error);
+                await Swal.fire({
+                    icon: 'error',
+                    title: '⚠️ Error',
+                    text: 'Gagal koneksi ke server: ' + error.message,
+                    confirmButtonText: 'OK'
+                });
             } finally {
                 // Lanjut scan lagi setelah alert tutup
                 isScanning = true;
