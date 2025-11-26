@@ -326,6 +326,19 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error(result.message || 'Failed to approve order');
       }
 
+      // Step 1b: Delete local proof to save storage
+      try {
+        const delResp = await fetch('/delete_proof.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderNumber })
+        });
+        const delJson = await delResp.json();
+        console.log('🧹 Delete proof:', delJson);
+      } catch (delErr) {
+        console.warn('⚠️ Failed to delete proof:', delErr);
+      }
+
       // Step 2: Get order data for email
       const order = allOrders.find(o => o.orderNumber === orderNumber);
       if (!order) {

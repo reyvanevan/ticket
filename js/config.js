@@ -82,10 +82,10 @@ const CONFIG = {
   // Remote Image Upload Provider (proof of payment)
   imageUpload: {
     enabled: true,
-    provider: 'pixhost',
-    apiKey: '', // Pixhost does not require API key for basic upload
-    endpoint: 'https://api.pixhost.to/images',
-    // Fallback: if imgbb fails, we temporarily keep base64 in local storage only (not recommended for production)
+    provider: 'local',
+    apiKey: '',
+    endpoint: '/upload_proof.php',
+    // Fallback still available but generally not needed with local upload
     fallbackToBase64: true
   },
 

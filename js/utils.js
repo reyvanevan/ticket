@@ -321,12 +321,15 @@ async function simulateFileUpload(file) { // keep function name for existing cal
     return base64LocalFallback(file, 'upload-disabled');
   }
 
-  if (cfg.provider === 'imgbb') {
+  if (cfg.provider === 'local') {
     try {
-      // Use multipart/form-data with binary file
       const formData = new FormData();
-      formData.append('key', cfg.apiKey);
-      formData.append('image', file); // imgbb accepts direct file blob
+      formData.append('file', file);
+      // If we have orderNumber in localStorage, send it to link file to order
+      const complete = getStorageData(CONFIG.storage.completeOrderData);
+      if (complete && complete.orderNumber) {
+        formData.append('orderNumber', complete.orderNumber);
+      }
 
       const response = await fetch(cfg.endpoint, {
         method: 'POST',
@@ -334,66 +337,19 @@ async function simulateFileUpload(file) { // keep function name for existing cal
       });
 
       const json = await response.json();
-      if (!response.ok || !json.success) {
-        throw new Error(json.error?.message || 'Upload failed');
+      if (!response.ok || json.status !== 'success') {
+        throw new Error(json.message || 'Upload failed');
       }
 
       return {
         success: true,
-        fileUrl: json.data.url,         // public URL
-        fileName: file.name,
-        uploadedAt: new Date().toISOString(),
-        provider: 'imgbb',
-        deleteUrl: json.data.delete_url || null
+        fileUrl: json.data.fileUrl,
+        fileName: json.data.fileName || file.name,
+        uploadedAt: json.data.uploadedAt || new Date().toISOString(),
+        provider: 'local'
       };
     } catch (err) {
-      console.error('imgbb upload failed:', err.message);
-      if (cfg.fallbackToBase64) {
-        return base64LocalFallback(file, 'fallback-base64');
-      }
-      throw err;
-    }
-  }
-
-  if (cfg.provider === 'pixhost') {
-    try {
-      // Pixhost upload: multipart/form-data to cfg.endpoint
-      // Common fields: 'img' for file, optional 'content_type' and 'max_width' etc.
-      const formData = new FormData();
-      formData.append('img', file);
-      formData.append('content_type', '1'); // 1 = image
-
-      const response = await fetch(cfg.endpoint, {
-        method: 'POST',
-        body: formData
-      });
-
-      // Pixhost may respond with JSON or plain text containing the URL.
-      const text = await response.text();
-      let url = null;
-      try {
-        const json = JSON.parse(text);
-        // Try common properties
-        url = json.url || json.image_url || json.data?.url || null;
-      } catch (_) {
-        // Fallback: extract URL from text via regex
-        const match = text.match(/https?:\/\/[^\s"']+/);
-        url = match ? match[0] : null;
-      }
-
-      if (!response.ok || !url) {
-        throw new Error('Pixhost upload failed');
-      }
-
-      return {
-        success: true,
-        fileUrl: url,
-        fileName: file.name,
-        uploadedAt: new Date().toISOString(),
-        provider: 'pixhost'
-      };
-    } catch (err) {
-      console.error('pixhost upload failed:', err.message);
+      console.error('local upload failed:', err.message);
       if (cfg.fallbackToBase64) {
         return base64LocalFallback(file, 'fallback-base64');
       }
