@@ -181,15 +181,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="status-badge status-${statusClass}">${statusText}</span>
           </td>
           <td>
-            ${hasProof ? (
-              hasUsableUrl
-                ? (
-                    isImage
-                      ? `<img src="${fileUrl}" alt="Bukti Transfer" class="proof-preview" onclick="showProofModal('${fileUrl}')" referrerpolicy="no-referrer">`
-                      : `<a href="${fileUrl}" target="_blank" rel="noopener" class="action-btn btn-view"><i data-feather="file"></i> Lihat Bukti</a>`
-                  )
-                : `<span title="${fileName}"><i data-feather="file"></i> ${fileName || 'Bukti tersedia (tanpa URL)'}</span>`
-            ) : '<span style="opacity: 0.5;">Belum upload</span>'}
+            ${hasProof
+              ? (
+                  hasUsableUrl
+                    ? `<a href="${fileUrl}" target="_blank" rel="noopener" class="action-btn btn-view"><i data-feather="external-link"></i> Buka Bukti</a>`
+                    : `<span title="${fileName}"><i data-feather="file"></i> ${fileName || 'Bukti tersedia (tanpa URL)'}</span>`
+                )
+              : '<span style="opacity: 0.5;">Belum upload</span>'
+            }
           </td>
           <td>
             <div class="action-buttons">
