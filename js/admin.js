@@ -328,15 +328,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Step 1b: Delete local proof to save storage
       try {
-        const delResp = await fetch('/delete_proof.php', {
+        const delResp = await fetch('/clear_proof.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderNumber })
         });
         const delJson = await delResp.json();
-        console.log('🧹 Delete proof:', delJson);
+        console.log('🧹 Clear proof:', delJson);
       } catch (delErr) {
-        console.warn('⚠️ Failed to delete proof:', delErr);
+        console.warn('⚠️ Failed to clear proof:', delErr);
       }
 
       // Step 2: Get order data for email
