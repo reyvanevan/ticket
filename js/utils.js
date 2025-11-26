@@ -355,6 +355,52 @@ async function simulateFileUpload(file) { // keep function name for existing cal
     }
   }
 
+  if (cfg.provider === 'pixhost') {
+    try {
+      // Pixhost upload: multipart/form-data to cfg.endpoint
+      // Common fields: 'img' for file, optional 'content_type' and 'max_width' etc.
+      const formData = new FormData();
+      formData.append('img', file);
+      formData.append('content_type', '1'); // 1 = image
+
+      const response = await fetch(cfg.endpoint, {
+        method: 'POST',
+        body: formData
+      });
+
+      // Pixhost may respond with JSON or plain text containing the URL.
+      const text = await response.text();
+      let url = null;
+      try {
+        const json = JSON.parse(text);
+        // Try common properties
+        url = json.url || json.image_url || json.data?.url || null;
+      } catch (_) {
+        // Fallback: extract URL from text via regex
+        const match = text.match(/https?:\/\/[^\s"']+/);
+        url = match ? match[0] : null;
+      }
+
+      if (!response.ok || !url) {
+        throw new Error('Pixhost upload failed');
+      }
+
+      return {
+        success: true,
+        fileUrl: url,
+        fileName: file.name,
+        uploadedAt: new Date().toISOString(),
+        provider: 'pixhost'
+      };
+    } catch (err) {
+      console.error('pixhost upload failed:', err.message);
+      if (cfg.fallbackToBase64) {
+        return base64LocalFallback(file, 'fallback-base64');
+      }
+      throw err;
+    }
+  }
+
   // Unknown provider fallback
   return base64LocalFallback(file, 'unknown-provider');
 }
