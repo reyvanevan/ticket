@@ -160,7 +160,14 @@ document.addEventListener('DOMContentLoaded', function() {
     tbody.innerHTML = filteredOrders.map(order => {
       const statusClass = getStatusClass(order.status);
       const statusText = getStatusText(order.status);
-      const hasProof = order.proofUploaded && order.proofFileUrl;
+      const fileUrl = (order.proofFileUrl || '').trim();
+      const fileName = (order.proofFileName || '').trim();
+      const hasProof = !!(order.proofUploaded && (fileUrl || fileName));
+      const hasUsableUrl = !!fileUrl; // only render media when we actually have a URL
+      const isImage = hasUsableUrl && (
+        fileUrl.startsWith('data:image') ||
+        /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(fileUrl)
+      );
 
       return `
         <tr data-order-id="${order.orderNumber}">
@@ -174,10 +181,15 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="status-badge status-${statusClass}">${statusText}</span>
           </td>
           <td>
-            ${hasProof ? 
-              `<img src="${order.proofFileUrl}" alt="Bukti Transfer" class="proof-preview" onclick="showProofModal('${order.proofFileUrl}')">` :
-              '<span style="opacity: 0.5;">Belum upload</span>'
-            }
+            ${hasProof ? (
+              hasUsableUrl
+                ? (
+                    isImage
+                      ? `<img src="${fileUrl}" alt="Bukti Transfer" class="proof-preview" onclick="showProofModal('${fileUrl}')" referrerpolicy="no-referrer">`
+                      : `<a href="${fileUrl}" target="_blank" rel="noopener" class="action-btn btn-view"><i data-feather="file"></i> Lihat Bukti</a>`
+                  )
+                : `<span title="${fileName}"><i data-feather="file"></i> ${fileName || 'Bukti tersedia (tanpa URL)'}</span>`
+            ) : '<span style="opacity: 0.5;">Belum upload</span>'}
           </td>
           <td>
             <div class="action-buttons">

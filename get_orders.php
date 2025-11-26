@@ -61,7 +61,7 @@ try {
             'total' => (int)$row['total'],
             'paymentMethod' => $row['payment_method'],
             'status' => $row['status'],
-            'proofUploaded' => !empty($row['proof_file_name']),
+            'proofUploaded' => (!empty($row['proof_file_url']) || !empty($row['proof_file_name'])),
             'proofFileName' => $row['proof_file_name'],
             'proofFileUrl' => $row['proof_file_url'],
             'orderDate' => $row['order_date'],
